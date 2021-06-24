@@ -8,13 +8,12 @@ import { CanvasService } from '../canvas/canvas.service'
 import CanvasRequestor from '@kth/canvas-api'
 
 import baseLogger from '../logger'
+import { CreateSectionApiHandler } from './api.create.section.handler'
 
 const logger = baseLogger.child({ filePath: __filename })
 
 @Injectable()
 export class APIService {
-  private readonly sectionsDataStore: any = {}
-
   constructor (private readonly canvasService: CanvasService) {
 
   }
@@ -90,7 +89,7 @@ export class APIService {
       logger.debug(`Received response with status code ${response.statusCode} with respose ${JSON.stringify(response.body)}`)
       const section = response.body
       const p = { id: section.id, name: section.name }
-      this.sectionsDataStore[sectionName] = p
+      // this.sectionsDataStore[sectionName] = p
       logger.info('################################')
       logger.info(`API call for section ${sectionName} with respose`)
       logger.info(p)
@@ -101,14 +100,7 @@ export class APIService {
   }
 
   async createSections (userLoginId: string, course: number, sectionsNames: string): Promise<any[]> {
-    const requestor = await this.canvasService.createRequestorForUser(userLoginId, '/api/v1/')
-    const sectionname: string[] = sectionsNames.split(',')
-    // const sectionList: any[] | PromiseLike<any[]> = []
-    console.time('TimeTaken For Create section')
-    const apiPromises = sectionname.map(async section => await this.apiCreateSectionsCall(section, course, requestor))
-    await Promise.all(apiPromises)
-
-    console.timeEnd('TimeTaken For Create section')
-    return this.sectionsDataStore
+    const createSectionsApiHandler = new CreateSectionApiHandler(this.canvasService, userLoginId, sectionsNames, course)
+    return await createSectionsApiHandler.createSectionsBase()
   }
 }
