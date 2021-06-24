@@ -3,8 +3,9 @@ import { HTTPError } from 'got'
 import { Injectable } from '@nestjs/common'
 
 import { APIErrorData, Globals, HelloData } from './api.interfaces'
-import { CanvasCourse, CanvasCourseBase } from '../canvas/canvas.interfaces'
+import { CanvasCourse, CanvasCourseBase, CanvasSectionBase } from '../canvas/canvas.interfaces'
 import { CanvasService } from '../canvas/canvas.service'
+import CanvasRequestor from '@kth/canvas-api'
 
 import baseLogger from '../logger'
 
@@ -12,7 +13,11 @@ const logger = baseLogger.child({ filePath: __filename })
 
 @Injectable()
 export class APIService {
-  constructor (private readonly canvasService: CanvasService) {}
+  private readonly sectionsDataStore: any = {}
+
+  constructor (private readonly canvasService: CanvasService) {
+
+  }
 
   getHello (): HelloData {
     return {
@@ -73,5 +78,37 @@ export class APIService {
     } catch (error) {
       return APIService.handleAPIError(error)
     }
+  }
+
+  async apiCreateSectionsCall (sectionName: string, course: number, requestor: CanvasRequestor): Promise<CanvasSectionBase | APIErrorData> {
+    try {
+      const endpoint = `courses/${course}/sections`
+      const method = 'POST'
+      const requestBody = { course_section: { name: sectionName } }
+      logger.debug(`Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`)
+      const response = await requestor.requestUrl<CanvasCourse>(endpoint, method, requestBody)
+      logger.debug(`Received response with status code ${response.statusCode} with respose ${JSON.stringify(response.body)}`)
+      const section = response.body
+      const p = { id: section.id, name: section.name }
+      this.sectionsDataStore[sectionName] = p
+      logger.info('################################')
+      logger.info(`API call for section ${sectionName} with respose`)
+      logger.info(p)
+      return p
+    } catch (error) {
+      return APIService.handleAPIError(error)
+    }
+  }
+
+  async createSections (userLoginId: string, course: number, sectionsNames: string): Promise<any[]> {
+    const requestor = await this.canvasService.createRequestorForUser(userLoginId, '/api/v1/')
+    const sectionname: string[] = sectionsNames.split(',')
+    // const sectionList: any[] | PromiseLike<any[]> = []
+    console.time('TimeTaken For Create section')
+    const apiPromises = sectionname.map(async section => await this.apiCreateSectionsCall(section, course, requestor))
+    await Promise.all(apiPromises)
+
+    console.timeEnd('TimeTaken For Create section')
+    return this.sectionsDataStore
   }
 }

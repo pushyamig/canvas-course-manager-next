@@ -1,4 +1,4 @@
-import { Globals, HelloMessageData } from './models/models'
+import { Globals, HelloMessageData, CreateSectionsResponse } from './models/models'
 import handleErrors from './utils/handleErrors'
 
 export interface LtiProps {
@@ -35,18 +35,38 @@ export const getGlobals = async (key: string | undefined): Promise<Globals> => {
   return await resp.json()
 }
 
-const delay = async (ms: number): Promise<void> => {
-  await new Promise<void>(resolve => setTimeout(() => resolve(), ms))
+export const createSections = async (key: string | undefined, data: string[]): Promise<CreateSectionsResponse> => {
+  console.log('create sections API call')
+  const params: RequestInit = {
+    method: 'POST',
+    ...createAuthHeaders(key),
+    body: JSON.stringify(data)
+  }
+  const resp = await fetch('api/createSections', params)
+  await handleErrors(resp)
+  return await resp.json()
 }
 
+// const delay = async (ms: number): Promise<void> => {
+//   await new Promise<void>(resolve => setTimeout(() => resolve(), ms))
+// }
+
 // This is a placeholder for a real implementation (I mean, obviously :D)
-export const getCourseSections = async (key: string | undefined, courseId: string): Promise<string[]> => {
-  const sections = await delay(2000).then(() => {
-    if (Math.random() * 3 > 1) {
-      return (['AAAA', 'BBBB'])
-    } else {
-      return new Promise<string[]>((resolve, reject) => { reject(new Error('Error retrieving course section information.')) })
-    }
-  })
-  return sections
+export const getCourseSections = async (key: string | undefined): Promise<string[]> => {
+  // const sections = await delay(2000).then(() => {
+  //   if (Math.random() * 3 > 1) {
+  //     return (['AAAA', 'BBBB'])
+  //   } else {
+  //     return new Promise<string[]>((resolve, reject) => { reject(new Error('Error retrieving course section information.')) })
+  //   }
+  // })
+  console.log('get sections API call')
+  console.log(key)
+  const params: RequestInit = {
+    method: 'GET',
+    ...createAuthHeaders(key)
+  }
+  const resp = await fetch('/api/sections', params)
+  await handleErrors(resp)
+  return await resp.json()
 }

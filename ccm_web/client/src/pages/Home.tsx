@@ -33,6 +33,8 @@ interface HomeProps extends LtiProps {
 }
 
 function Home (props: HomeProps): JSX.Element {
+  console.log(props.globals)
+  console.log(props.ltiKey)
   const classes = useStyles()
 
   const renderFeature = (feature: FeatureUIProps): JSX.Element => {

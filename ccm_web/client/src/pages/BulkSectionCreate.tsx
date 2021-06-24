@@ -2,7 +2,8 @@ import { Backdrop, Box, Button, CircularProgress, Grid, makeStyles, Paper, Typog
 import CloudDoneIcon from '@material-ui/icons/CloudDone'
 import ErrorIcon from '@material-ui/icons/Error'
 import React, { useEffect, useState } from 'react'
-import { getCourseSections } from '../api'
+import { createSections, getCourseSections } from '../api'
+import BulkSectionCreateFileExample from '../components/BulkSectionCreateFileExample'
 import BulkSectionCreateUploadConfirmationTable, { Section } from '../components/BulkSectionCreateUploadConfirmationTable'
 import FileUpload from '../components/FileUpload'
 import ValidationErrorTable from '../components/ValidationErrorTable'
@@ -154,7 +155,7 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
   const [existingSectionNames, setExistingSectionNames] = useState<string[]|undefined>(undefined)
 
   const [doLoadCanvasSectionData, isExistingSectionsLoading, getCanvasSectionDataError] = usePromise(
-    async () => await getCourseSections(props.ltiKey, 'TODO-CourseNumberFromProps?'),
+    async () => await getCourseSections(props.ltiKey),
     (value: string[]) => setExistingSectionNames(value.map(s => { return s.toUpperCase() }))
   )
 
@@ -199,6 +200,10 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
 
   const resetPageState = (): void => {
     setPageState({ state: BulkSectionCreatePageState.Upload, schemaInvalidation: [], rowInvalidations: [] })
+  }
+
+  const sendCreateSections = (): void => {
+    console.log('Send Response')
   }
 
   const handleSchemaError = (schemaInvalidations: SectionsSchemaInvalidation[]): void => {
@@ -415,7 +420,8 @@ Section 001`
                 <Typography>Review your CSV file</Typography>
                 <CloudDoneIcon className={confirmationClasses.dialogIcon} fontSize='large'/>
                 <Typography>Your file is valid!  If this looks correct proceed with download</Typography>
-                <Button variant="outlined" onClick={(e) => resetPageState()}>Do Something</Button>
+                <Button variant="outlined" onClick={(e) => resetPageState()}>Cancel</Button>
+                <Button variant="outlined" onClick={(e) => sendCreateSections()}>Submit</Button>
               </Paper>
             </Grid>
           </Box>

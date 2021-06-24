@@ -43,7 +43,6 @@ function App (props: AppProps): JSX.Element {
       </div>
     )
   }
-
   interface BreadcrumbProps {
     isLink: boolean
   }
