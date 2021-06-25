@@ -143,6 +143,8 @@ interface BulkSectionCreatePageStateData {
 interface BulkSectionCreateProps extends CCMComponentProps {}
 
 function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
+  console.log('Bulk create sections props')
+  console.log(props)
   const classes = useStyles()
   const confirmationClasses = useConfirmationStyles()
   const rowLevelErrorClasses = useRowLevelErrorStyles()

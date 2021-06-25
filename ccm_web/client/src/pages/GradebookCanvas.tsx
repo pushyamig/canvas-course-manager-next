@@ -4,6 +4,7 @@ import CloudDoneIcon from '@material-ui/icons/CloudDone'
 import ErrorIcon from '@material-ui/icons/Error'
 import WarningIcon from '@material-ui/icons/Warning'
 import { parse, ParseResult } from 'papaparse'
+import { CCMComponentProps } from '../models/FeatureUIData'
 
 import FileUpload from '../components/FileUpload'
 import ValidationErrorTable from '../components/ValidationErrorTable'
@@ -121,8 +122,11 @@ interface DownloadData {
   data: string
   fileName: string
 }
+interface ConvertCanvasGradebookProps extends CCMComponentProps {}
 
-function ConvertCanvasGradebook (): JSX.Element {
+function ConvertCanvasGradebook (props: ConvertCanvasGradebookProps): JSX.Element {
+  console.log('ConvertCanvasGradebook props')
+  console.log(props)
   const classes = useStyles()
   const confirmationClasses = useConfirmationStyles()
   const rowLevelErrorClasses = useRowLevelErrorStyles()

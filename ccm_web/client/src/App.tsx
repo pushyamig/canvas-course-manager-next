@@ -85,7 +85,9 @@ function App (props: AppProps): JSX.Element {
           <Switch>
             <Route exact={true} path="/" render={() => (<Home globals={globals} ltiKey={props.ltiKey} />)} />
             {features.map(feature => {
-              return <Route key={feature.data.id} path={feature.route} component={feature.component} />
+              // return <Route key={feature.data.id} path={feature.route} component={feature.component} />
+              const Feature = feature.component
+              return <Route key={feature.data.id} path={feature.route} render={() => (<Feature globals={globals} ltiKey={props.ltiKey} />)} />
             })}
             <Route render={() => (<div><em>Under Construction</em></div>)} />
           </Switch>
