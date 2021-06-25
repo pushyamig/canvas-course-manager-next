@@ -1,13 +1,14 @@
 import { SessionData } from 'express-session'
 import {
-  Body, Controller, Get, HttpException, Param, ParseIntPipe, Put, Session
+  Body, Controller, Get, HttpException, Param, ParseIntPipe, Post, Put, Session
 } from '@nestjs/common'
 import { ApiBearerAuth } from '@nestjs/swagger'
 
 import { HelloData, isAPIErrorData, Globals } from './api.interfaces'
 import { APIService } from './api.service'
 import { CourseNameDto } from './dtos/api.course.name.dto'
-import { CanvasCourseBase } from '../canvas/canvas.interfaces'
+import { CanvasCourseBase, CanvasSectionBase } from '../canvas/canvas.interfaces'
+import { SectionNameDto } from './dtos/api.section.dto'
 
 @ApiBearerAuth()
 @Controller('api')
@@ -40,6 +41,16 @@ export class APIController {
   ): Promise<CanvasCourseBase> {
     const { userLoginId } = session.data
     const result = await this.apiService.putCourseName(userLoginId, courseId, courseNameDto.newName)
+    if (isAPIErrorData(result)) throw new HttpException(result, result.statusCode)
+    return result
+  }
+
+  @Post('course/:id/sections')
+  async createSingleSection (
+    @Param('id', ParseIntPipe) courseId: number, @Body() sectionNameDto: SectionNameDto, @Session() session: SessionData
+  ): Promise<CanvasSectionBase> {
+    const { userLoginId, course } = session.data
+    const result = await this.apiService.postCreateSingleSection(userLoginId, course.id, sectionNameDto.newName)
     if (isAPIErrorData(result)) throw new HttpException(result, result.statusCode)
     return result
   }

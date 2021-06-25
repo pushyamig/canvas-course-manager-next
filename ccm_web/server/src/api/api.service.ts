@@ -3,7 +3,7 @@ import { HTTPError } from 'got'
 import { Injectable } from '@nestjs/common'
 
 import { APIErrorData, Globals, HelloData } from './api.interfaces'
-import { CanvasCourse, CanvasCourseBase } from '../canvas/canvas.interfaces'
+import { CanvasCourse, CanvasCourseBase, CanvasSectionBase } from '../canvas/canvas.interfaces'
 import { CanvasService } from '../canvas/canvas.service'
 
 import baseLogger from '../logger'
@@ -67,6 +67,24 @@ export class APIService {
         `Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`
       )
       const response = await requestor.requestUrl<CanvasCourse>(endpoint, method, requestBody)
+      logger.debug(`Received response with status code ${response.statusCode}`)
+      const course = response.body
+      return { id: course.id, name: course.name }
+    } catch (error) {
+      return APIService.handleAPIError(error)
+    }
+  }
+
+  async postCreateSingleSection (userLoginId: string, courseId: number, newName: string): Promise<CanvasSectionBase | APIErrorData> {
+    const requestor = await this.canvasService.createRequestorForUser(userLoginId, '/api/v1/')
+    try {
+      const endpoint = `courses/${courseId}/sections`
+      const method = 'POST'
+      const requestBody = { course_section: { name: newName } }
+      logger.debug(
+        `Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`
+      )
+      const response = await requestor.requestUrl<CanvasSectionBase>(endpoint, method, requestBody)
       logger.debug(`Received response with status code ${response.statusCode}`)
       const course = response.body
       return { id: course.id, name: course.name }
