@@ -99,7 +99,7 @@ export class APIService {
     }
   }
 
-  async createSections (userLoginId: string, course: number, sectionsNames: string): Promise<any[]> {
+  async createSections (userLoginId: string, course: number, sectionsNames: string[]): Promise<any[]> {
     const createSectionsApiHandler = new CreateSectionApiHandler(this.canvasService, userLoginId, sectionsNames, course)
     return await createSectionsApiHandler.createSectionsBase()
   }

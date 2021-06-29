@@ -3,7 +3,6 @@ import CloudDoneIcon from '@material-ui/icons/CloudDone'
 import ErrorIcon from '@material-ui/icons/Error'
 import React, { useEffect, useState } from 'react'
 import { createSections, getCourseSections } from '../api'
-import BulkSectionCreateFileExample from '../components/BulkSectionCreateFileExample'
 import BulkSectionCreateUploadConfirmationTable, { Section } from '../components/BulkSectionCreateUploadConfirmationTable'
 import FileUpload from '../components/FileUpload'
 import ValidationErrorTable from '../components/ValidationErrorTable'
@@ -12,6 +11,7 @@ import { CCMComponentProps } from '../models/FeatureUIData'
 import usePromise from '../hooks/usePromise'
 import { DuplicateSectionInFileSectionRowsValidator, hasHeader, InvalidationType, SectionNameHeaderValidator, SectionRowsValidator, SectionsRowInvalidation, SectionsSchemaInvalidation, SectionsSchemaValidator } from '../components/BulkSectionCreateValidators'
 import ExampleFileDownloadHeader, { ExampleFileDownloadHeaderProps } from '../components/ExampleFileDownloadHeader'
+import { CreateSectionsResponse } from '../models/models'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -154,12 +154,21 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
   const [pageState, setPageState] = useState<BulkSectionCreatePageStateData>({ state: BulkSectionCreatePageState.LoadingExistingSectionNames, schemaInvalidation: [], rowInvalidations: [] })
   const [file, setFile] = useState<File|undefined>(undefined)
   const [sectionNames, setSectionNames] = useState<string[]>([])
+  const [createSectionRequest, setCreateSectionsRequest] = useState<boolean | undefined>(undefined)
   const [existingSectionNames, setExistingSectionNames] = useState<string[]|undefined>(undefined)
 
   const [doLoadCanvasSectionData, isExistingSectionsLoading, getCanvasSectionDataError] = usePromise(
-    async () => await getCourseSections(props.ltiKey),
+    async () => await getCourseSections(props.ltiKey, 'TODO-CourseNumberFromProps?'),
     (value: string[]) => setExistingSectionNames(value.map(s => { return s.toUpperCase() }))
   )
+  const [doCreateSections, isCreateSectionsLoading, getCreateSectionsErrors] = usePromise(
+    async () => await createSections(props.ltiKey, props.globals.course.id, ['section1', 'section2', 'section3', 'section4']),
+    (value: CreateSectionsResponse) => setPageState({ state: BulkSectionCreatePageState.Done, schemaInvalidation: [], rowInvalidations: [] })
+  )
+
+  useEffect(() => {
+    void doCreateSections()
+  }, [createSectionRequest])
 
   useEffect(() => {
     void doLoadCanvasSectionData()
@@ -206,6 +215,7 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
 
   const sendCreateSections = (): void => {
     console.log('Send Response')
+    setCreateSectionsRequest(true)
   }
 
   const handleSchemaError = (schemaInvalidations: SectionsSchemaInvalidation[]): void => {
@@ -315,6 +325,27 @@ Section 001`
         <h5 className={classes.fileNameContainer}>
           <Typography component='span'>File: </Typography><Typography component='span' className={classes.fileName}>{file.name}</Typography>
         </h5>
+      )
+    } else {
+      return <></>
+    }
+  }
+
+  const renderDoneMessage = (): JSX.Element => {
+    if (file !== undefined) {
+      return (
+        <>
+        <h5 className={classes.fileNameContainer}>
+          <Typography component='span'>File: </Typography><Typography component='span' className={classes.fileName}>{file.name}</Typography>
+        </h5>
+        <Grid container justify='flex-start'>
+        <Grid item xs={12} className={topLevelClasses.dialog}>
+          <Paper role='alert'>
+            <Typography>Sections are created</Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+      </>
       )
     } else {
       return <></>
@@ -448,7 +479,7 @@ Section 001`
       case BulkSectionCreatePageState.Confirm:
         return renderConfirm(sectionNamesToSection(sectionNames))
       case BulkSectionCreatePageState.Done:
-        return (<div>DONE</div>)
+        return renderDoneMessage()
       default:
         return <div>?</div>
     }

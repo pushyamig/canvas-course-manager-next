@@ -45,10 +45,10 @@ export class APIController {
     return result
   }
 
-  @Post('createSections')
-  async createSections (@Body() sectionsData: CreateSectionsDto, @Session() session: SessionData): Promise<any> {
-    const { userLoginId, course } = session.data
-    const result = await this.apiService.createSections(userLoginId, course.id, sectionsData.sectionNames)
+  @Post('course/:id/sections')
+  async createSections (@Param('id', ParseIntPipe) courseId: number, @Body() sectionsData: CreateSectionsDto, @Session() session: SessionData): Promise<any> {
+    const { userLoginId } = session.data
+    const result = await this.apiService.createSections(userLoginId, courseId, sectionsData.sectionNames)
     if (isAPIErrorData(result)) throw new HttpException(result, result.statusCode)
     return result
   }

@@ -35,14 +35,14 @@ export const getGlobals = async (key: string | undefined): Promise<Globals> => {
   return await resp.json()
 }
 
-export const createSections = async (key: string | undefined, data: string[]): Promise<CreateSectionsResponse> => {
+export const createSections = async (key: string | undefined, courseId: number, data: string[]): Promise<CreateSectionsResponse> => {
   console.log('create sections API call')
   const params: RequestInit = {
     method: 'POST',
     ...createAuthHeaders(key),
     body: JSON.stringify(data)
   }
-  const resp = await fetch('api/createSections', params)
+  const resp = await fetch(`/api/course/${courseId}/sections`, params)
   await handleErrors(resp)
   return await resp.json()
 }
@@ -52,7 +52,7 @@ export const createSections = async (key: string | undefined, data: string[]): P
 // }
 
 // This is a placeholder for a real implementation (I mean, obviously :D)
-export const getCourseSections = async (key: string | undefined): Promise<string[]> => {
+export const getCourseSections = async (key: string | undefined, courseId: string): Promise<string[]> => {
   // const sections = await delay(2000).then(() => {
   //   if (Math.random() * 3 > 1) {
   //     return (['AAAA', 'BBBB'])
@@ -60,13 +60,5 @@ export const getCourseSections = async (key: string | undefined): Promise<string
   //     return new Promise<string[]>((resolve, reject) => { reject(new Error('Error retrieving course section information.')) })
   //   }
   // })
-  console.log('get sections API call')
-  console.log(key)
-  const params: RequestInit = {
-    method: 'GET',
-    ...createAuthHeaders(key)
-  }
-  const resp = await fetch('/api/sections', params)
-  await handleErrors(resp)
-  return await resp.json()
+  return (['AAAA', 'BBBB'])
 }

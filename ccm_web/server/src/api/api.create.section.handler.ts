@@ -6,12 +6,12 @@ import baseLogger from '../logger'
 const logger = baseLogger.child({ filePath: __filename })
 
 export class CreateSectionApiHandler {
-  private sectionsDataStore: any = {}
-
   constructor (private readonly canvasService: CanvasService,
     private readonly userLoginId: string,
-    private readonly sections: string,
+    private readonly sections: string[],
     private readonly courseId: number) {}
+
+  private sectionsDataStore: any = {}
 
   async apiCreateSectionsCall (sectionName: string, requestor: CanvasRequestor): Promise<CanvasSectionBase | null> {
     try {
@@ -28,18 +28,22 @@ export class CreateSectionApiHandler {
       logger.info(`API call for creating section '${sectionName}' respose is ${JSON.stringify(sectionCreateRes)}`)
       return sectionCreateRes
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      logger.error(`error creating section ${sectionName} for course ${this.courseId} due to ${error}`)
       return null
     }
   }
 
   async createSectionsBase (): Promise<any> {
     const requestor = await this.canvasService.createRequestorForUser(this.userLoginId, '/api/v1/')
-    const sectionNames: string[] = this.sections.split(',')
-    logger.info(`list of sections ${JSON.stringify(sectionNames)}`)
-    console.time(`TimeTaken For Create sections ${sectionNames.length}:`)
-    const apiPromises = sectionNames.map(async (section) => await this.apiCreateSectionsCall(section, requestor))
+    // const sectionNames: string[] = this.sections.split(',')
+    logger.info(`list of sections ${JSON.stringify(this.sections)}`)
+    console.time('TimeTaken For Create sections')
+    const apiPromises = this.sections.map(async (section) => await this.apiCreateSectionsCall(section, requestor))
     await Promise.all(apiPromises)
-    console.timeEnd(`TimeTaken For Create sections ${sectionNames.length}: `)
+    console.timeEnd('TimeTaken For Create sections')
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    logger.info(`section created response: ${JSON.stringify(this.sectionsDataStore)}`)
     return this.sectionsDataStore
   }
 }

@@ -1,13 +1,12 @@
-import { IsNotEmpty, MaxLength } from 'class-validator'
+import { IsNotEmpty } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class CreateSectionsDto {
   @ApiProperty()
   @IsNotEmpty()
-  @MaxLength(1000)
-  sectionNames: string
+  sectionNames: string[]
 
-  constructor (sectionNames: string) {
+  constructor (sectionNames: string[]) {
     this.sectionNames = sectionNames
   }
 }
