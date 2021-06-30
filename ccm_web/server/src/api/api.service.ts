@@ -81,7 +81,7 @@ export class APIService {
 
   async apiCreateSectionsCall (sectionName: string, course: number, requestor: CanvasRequestor): Promise<CanvasSectionBase | APIErrorData> {
     try {
-      const endpoint = `courses/${course}/sections`
+      const endpoint = `courses/${course}/sectionsParse`
       const method = 'POST'
       const requestBody = { course_section: { name: sectionName } }
       logger.debug(`Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`)
@@ -99,8 +99,8 @@ export class APIService {
     }
   }
 
-  async createSections (userLoginId: string, course: number, sectionsNames: string[]): Promise<any[]> {
-    const createSectionsApiHandler = new CreateSectionApiHandler(this.canvasService, userLoginId, sectionsNames, course)
+  async createSections (userLoginId: string, course: number, sections: string[]): Promise<any[]> {
+    const createSectionsApiHandler = new CreateSectionApiHandler(this.canvasService, userLoginId, sections, course)
     return await createSectionsApiHandler.createSectionsBase()
   }
 }

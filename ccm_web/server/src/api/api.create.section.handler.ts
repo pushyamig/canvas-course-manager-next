@@ -2,6 +2,7 @@ import CanvasRequestor from '@kth/canvas-api'
 import { CanvasCourse, CanvasSectionBase } from '../canvas/canvas.interfaces'
 import { CanvasService } from '../canvas/canvas.service'
 import baseLogger from '../logger'
+import { CreateSectionsDto } from './dtos/api.create.sections.dto'
 
 const logger = baseLogger.child({ filePath: __filename })
 

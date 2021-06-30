@@ -9,7 +9,7 @@ const createAuthHeaders = (key: string | undefined): RequestInit => {
   if (key !== undefined) {
     return {
       credentials: 'include',
-      headers: { Authorization: 'Bearer ' + key }
+      headers: { Authorization: 'Bearer ' + key, 'Content-type': 'application/json' }
     }
   }
   return {}
@@ -40,8 +40,9 @@ export const createSections = async (key: string | undefined, courseId: number, 
   const params: RequestInit = {
     method: 'POST',
     ...createAuthHeaders(key),
-    body: JSON.stringify(data)
+    body: JSON.stringify({ sections: data })
   }
+  console.log(params)
   const resp = await fetch(`/api/course/${courseId}/sections`, params)
   await handleErrors(resp)
   return await resp.json()

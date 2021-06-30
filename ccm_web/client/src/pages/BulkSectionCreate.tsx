@@ -143,8 +143,6 @@ interface BulkSectionCreatePageStateData {
 interface BulkSectionCreateProps extends CCMComponentProps {}
 
 function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
-  console.log('Bulk create sections props')
-  console.log(props)
   const classes = useStyles()
   const confirmationClasses = useConfirmationStyles()
   const rowLevelErrorClasses = useRowLevelErrorStyles()
@@ -154,7 +152,7 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
   const [pageState, setPageState] = useState<BulkSectionCreatePageStateData>({ state: BulkSectionCreatePageState.LoadingExistingSectionNames, schemaInvalidation: [], rowInvalidations: [] })
   const [file, setFile] = useState<File|undefined>(undefined)
   const [sectionNames, setSectionNames] = useState<string[]>([])
-  const [createSectionRequest, setCreateSectionsRequest] = useState<boolean | undefined>(undefined)
+  // const [createSectionRequest, setCreateSectionsRequest] = useState<boolean | undefined>(undefined)
   const [existingSectionNames, setExistingSectionNames] = useState<string[]|undefined>(undefined)
 
   const [doLoadCanvasSectionData, isExistingSectionsLoading, getCanvasSectionDataError] = usePromise(
@@ -162,13 +160,9 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
     (value: string[]) => setExistingSectionNames(value.map(s => { return s.toUpperCase() }))
   )
   const [doCreateSections, isCreateSectionsLoading, getCreateSectionsErrors] = usePromise(
-    async () => await createSections(props.ltiKey, props.globals.course.id, ['section1', 'section2', 'section3', 'section4']),
+    async () => await createSections(props.ltiKey, props.globals.course.id, sectionNames),
     (value: CreateSectionsResponse) => setPageState({ state: BulkSectionCreatePageState.Done, schemaInvalidation: [], rowInvalidations: [] })
   )
-
-  useEffect(() => {
-    void doCreateSections()
-  }, [createSectionRequest])
 
   useEffect(() => {
     void doLoadCanvasSectionData()
@@ -213,10 +207,10 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
     setPageState({ state: BulkSectionCreatePageState.Upload, schemaInvalidation: [], rowInvalidations: [] })
   }
 
-  const sendCreateSections = (): void => {
-    console.log('Send Response')
-    setCreateSectionsRequest(true)
-  }
+  // const sendCreateSections = (): void => {
+  //   console.log('Send Response')
+  //   setCreateSectionsRequest(true)
+  // }
 
   const handleSchemaError = (schemaInvalidations: SectionsSchemaInvalidation[]): void => {
     setPageState({ state: BulkSectionCreatePageState.InvalidUpload, schemaInvalidation: schemaInvalidations, rowInvalidations: [] })
@@ -454,7 +448,7 @@ Section 001`
                 <CloudDoneIcon className={confirmationClasses.dialogIcon} fontSize='large'/>
                 <Typography>Your file is valid!  If this looks correct proceed with download</Typography>
                 <Button variant="outlined" onClick={(e) => resetPageState()}>Cancel</Button>
-                <Button variant="outlined" onClick={(e) => sendCreateSections()}>Submit</Button>
+                <Button variant="outlined" onClick={() => void doCreateSections()}>Submit</Button>
               </Paper>
             </Grid>
           </Box>

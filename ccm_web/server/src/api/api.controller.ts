@@ -2,7 +2,7 @@ import { SessionData } from 'express-session'
 import {
   Body, Controller, Get, HttpException, Param, ParseIntPipe, Post, Put, Session
 } from '@nestjs/common'
-import { ApiBearerAuth } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger'
 
 import { HelloData, isAPIErrorData, Globals } from './api.interfaces'
 import { APIService } from './api.service'
@@ -46,9 +46,10 @@ export class APIController {
   }
 
   @Post('course/:id/sections')
-  async createSections (@Param('id', ParseIntPipe) courseId: number, @Body() sectionsData: CreateSectionsDto, @Session() session: SessionData): Promise<any> {
+  async createSections (@Param('id', ParseIntPipe) courseId: number, @Body() createSectionsDto: CreateSectionsDto, @Session() session: SessionData): Promise<any> {
     const { userLoginId } = session.data
-    const result = await this.apiService.createSections(userLoginId, courseId, sectionsData.sectionNames)
+    const sections = createSectionsDto.sections
+    const result = await this.apiService.createSections(userLoginId, courseId, sections)
     if (isAPIErrorData(result)) throw new HttpException(result, result.statusCode)
     return result
   }

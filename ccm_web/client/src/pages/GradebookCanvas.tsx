@@ -125,8 +125,6 @@ interface DownloadData {
 interface ConvertCanvasGradebookProps extends CCMComponentProps {}
 
 function ConvertCanvasGradebook (props: ConvertCanvasGradebookProps): JSX.Element {
-  console.log('ConvertCanvasGradebook props')
-  console.log(props)
   const classes = useStyles()
   const confirmationClasses = useConfirmationStyles()
   const rowLevelErrorClasses = useRowLevelErrorStyles()
