@@ -3,9 +3,8 @@ import { HTTPError } from 'got'
 import { Injectable } from '@nestjs/common'
 
 import { APIErrorData, Globals, HelloData } from './api.interfaces'
-import { CanvasCourse, CanvasCourseBase, CanvasSectionBase } from '../canvas/canvas.interfaces'
+import { CanvasCourse, CanvasCourseBase } from '../canvas/canvas.interfaces'
 import { CanvasService } from '../canvas/canvas.service'
-import CanvasRequestor from '@kth/canvas-api'
 
 import baseLogger from '../logger'
 import { CreateSectionApiHandler } from './api.create.section.handler'
@@ -79,27 +78,7 @@ export class APIService {
     }
   }
 
-  async apiCreateSectionsCall (sectionName: string, course: number, requestor: CanvasRequestor): Promise<CanvasSectionBase | APIErrorData> {
-    try {
-      const endpoint = `courses/${course}/sectionsParse`
-      const method = 'POST'
-      const requestBody = { course_section: { name: sectionName } }
-      logger.debug(`Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`)
-      const response = await requestor.requestUrl<CanvasCourse>(endpoint, method, requestBody)
-      logger.debug(`Received response with status code ${response.statusCode} with respose ${JSON.stringify(response.body)}`)
-      const section = response.body
-      const p = { id: section.id, name: section.name }
-      // this.sectionsDataStore[sectionName] = p
-      logger.info('################################')
-      logger.info(`API call for section ${sectionName} with respose`)
-      logger.info(p)
-      return p
-    } catch (error) {
-      return APIService.handleAPIError(error)
-    }
-  }
-
-  async createSections (userLoginId: string, course: number, sections: string[]): Promise<any[]> {
+  async createSections (userLoginId: string, course: number, sections: string[]): Promise<APIErrorData> {
     const createSectionsApiHandler = new CreateSectionApiHandler(this.canvasService, userLoginId, sections, course)
     return await createSectionsApiHandler.createSectionsBase()
   }

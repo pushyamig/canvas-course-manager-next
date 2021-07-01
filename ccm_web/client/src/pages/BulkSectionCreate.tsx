@@ -207,11 +207,6 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
     setPageState({ state: BulkSectionCreatePageState.Upload, schemaInvalidation: [], rowInvalidations: [] })
   }
 
-  // const sendCreateSections = (): void => {
-  //   console.log('Send Response')
-  //   setCreateSectionsRequest(true)
-  // }
-
   const handleSchemaError = (schemaInvalidations: SectionsSchemaInvalidation[]): void => {
     setPageState({ state: BulkSectionCreatePageState.InvalidUpload, schemaInvalidation: schemaInvalidations, rowInvalidations: [] })
   }
@@ -448,7 +443,7 @@ Section 001`
                 <CloudDoneIcon className={confirmationClasses.dialogIcon} fontSize='large'/>
                 <Typography>Your file is valid!  If this looks correct proceed with download</Typography>
                 <Button variant="outlined" onClick={(e) => resetPageState()}>Cancel</Button>
-                <Button variant="outlined" onClick={() => void doCreateSections()}>Submit</Button>
+                <Button variant="outlined" onClick={async () => await doCreateSections()}>Submit</Button>
               </Paper>
             </Grid>
           </Box>

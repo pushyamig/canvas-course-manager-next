@@ -2,7 +2,7 @@ import { SessionData } from 'express-session'
 import {
   Body, Controller, Get, HttpException, Param, ParseIntPipe, Post, Put, Session
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiBody } from '@nestjs/swagger'
+import { ApiBearerAuth } from '@nestjs/swagger'
 
 import { HelloData, isAPIErrorData, Globals } from './api.interfaces'
 import { APIService } from './api.service'
