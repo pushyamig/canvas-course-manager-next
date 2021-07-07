@@ -1,4 +1,4 @@
-import { Backdrop, Box, Button, CircularProgress, Grid, makeStyles, Paper, Typography } from '@material-ui/core'
+import { Backdrop, Box, Button, Card, CardContent, CircularProgress, Grid, makeStyles, Paper, Typography } from '@material-ui/core'
 import CloudDoneIcon from '@material-ui/icons/CloudDone'
 import ErrorIcon from '@material-ui/icons/Error'
 import React, { useEffect, useState } from 'react'
@@ -125,13 +125,26 @@ const useAPIErrorStyles = makeStyles((theme) => ({
   }
 }))
 
+const useCreateSectionSuccessFailureStyle = makeStyles((theme) => ({
+  uploadIcon: {
+    color: '#3F648E'
+  },
+  cardContent: {
+    height: 250,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center'
+  }
+}))
+
 enum BulkSectionCreatePageState {
   LoadingExistingSectionNames,
   LoadingExistingSectionNamesFailed,
   Upload,
   InvalidUpload,
   Confirm,
-  Done
+  sectionsCreatedWithSuccess,
+  sectionsCreatedWithErrors
 }
 
 interface BulkSectionCreatePageStateData {
@@ -148,11 +161,11 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
   const rowLevelErrorClasses = useRowLevelErrorStyles()
   const topLevelClasses = useTopLevelErrorStyles()
   const apiErrorClasses = useAPIErrorStyles()
+  const doneStyles = useCreateSectionSuccessFailureStyle()
 
   const [pageState, setPageState] = useState<BulkSectionCreatePageStateData>({ state: BulkSectionCreatePageState.LoadingExistingSectionNames, schemaInvalidation: [], rowInvalidations: [] })
   const [file, setFile] = useState<File|undefined>(undefined)
   const [sectionNames, setSectionNames] = useState<string[]>([])
-  // const [createSectionRequest, setCreateSectionsRequest] = useState<boolean | undefined>(undefined)
   const [existingSectionNames, setExistingSectionNames] = useState<string[]|undefined>(undefined)
 
   const [doLoadCanvasSectionData, isExistingSectionsLoading, getCanvasSectionDataError] = usePromise(
@@ -161,7 +174,10 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
   )
   const [doCreateSections, isCreateSectionsLoading, getCreateSectionsErrors] = usePromise(
     async () => await createSections(props.ltiKey, props.globals.course.id, sectionNames),
-    (value: CreateSectionsResponse) => setPageState({ state: BulkSectionCreatePageState.Done, schemaInvalidation: [], rowInvalidations: [] })
+    (value: CreateSectionsResponse|undefined) => {
+      console.log(value)
+      setPageState({ state: BulkSectionCreatePageState.sectionsCreatedWithSuccess, schemaInvalidation: [], rowInvalidations: [] })
+    }
   )
 
   useEffect(() => {
@@ -171,6 +187,10 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
   useEffect(() => {
     setPageState({ state: BulkSectionCreatePageState.LoadingExistingSectionNamesFailed, schemaInvalidation: [], rowInvalidations: [] })
   }, [getCanvasSectionDataError])
+
+  useEffect(() => {
+    setPageState({ state: BulkSectionCreatePageState.sectionsCreatedWithErrors, schemaInvalidation: [], rowInvalidations: [] })
+  }, [getCreateSectionsErrors])
 
   class DuplicateExistingSectionRowsValidator implements SectionRowsValidator {
     validate = (sectionNames: string[]): SectionsRowInvalidation[] => {
@@ -320,25 +340,32 @@ Section 001`
     }
   }
 
-  const renderDoneMessage = (): JSX.Element => {
-    if (file !== undefined) {
-      return (
-        <>
-        <h5 className={classes.fileNameContainer}>
-          <Typography component='span'>File: </Typography><Typography component='span' className={classes.fileName}>{file.name}</Typography>
-        </h5>
-        <Grid container justify='flex-start'>
-        <Grid item xs={12} className={topLevelClasses.dialog}>
-          <Paper role='alert'>
-            <Typography>Sections are created</Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-      </>
-      )
-    } else {
-      return <></>
-    }
+  const renderSectionsCreatedSuccessDisplay = (): JSX.Element => {
+    return (
+        <Card variant='outlined'>
+          <CardContent className={doneStyles.cardContent}>
+            <div>
+              <CloudDoneIcon className={doneStyles.uploadIcon} fontSize='large' />
+              <Typography>All Sections has been created</Typography>
+            </div>
+          </CardContent>
+        </Card>
+    )
+  }
+
+  const renderSectionsCreatedErrorsDisplay = (): JSX.Element => {
+    console.log(getCreateSectionsErrors?.message)
+    console.log(getCreateSectionsErrors?.name)
+    return (
+    <Card variant='outlined'>
+      <CardContent className={doneStyles.cardContent}>
+        <div>
+            <ErrorIcon className={doneStyles.uploadIcon} fontSize='large'/>
+            <Typography>{getCreateSectionsErrors?.message}</Typography>
+        </div>
+      </CardContent>
+      </Card>
+    )
   }
 
   const renderUploadAgainButton = (): JSX.Element => {
@@ -448,6 +475,16 @@ Section 001`
             </Grid>
           </Box>
         </Grid>
+        <Backdrop className={classes.backdrop} open={isCreateSectionsLoading}>
+        <Grid container>
+          <Grid item xs={12}>
+            <CircularProgress color="inherit" />
+          </Grid>
+          <Grid item xs={12}>
+          <Typography>Creating Sections, this may take several seconds</Typography>
+          </Grid>
+        </Grid>
+      </Backdrop>
       </div>)
   }
 
@@ -467,8 +504,10 @@ Section 001`
         return renderInvalidUpload()
       case BulkSectionCreatePageState.Confirm:
         return renderConfirm(sectionNamesToSection(sectionNames))
-      case BulkSectionCreatePageState.Done:
-        return renderDoneMessage()
+      case BulkSectionCreatePageState.sectionsCreatedWithSuccess:
+        return renderSectionsCreatedSuccessDisplay()
+      case BulkSectionCreatePageState.sectionsCreatedWithErrors:
+        return renderSectionsCreatedErrorsDisplay()
       default:
         return <div>?</div>
     }

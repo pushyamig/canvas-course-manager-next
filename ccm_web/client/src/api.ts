@@ -36,21 +36,20 @@ export const getGlobals = async (key: string | undefined): Promise<Globals> => {
 }
 
 export const createSections = async (key: string | undefined, courseId: number, data: string[]): Promise<CreateSectionsResponse> => {
-  console.log('create sections API call')
   const params: RequestInit = {
     method: 'POST',
     ...createAuthHeaders(key),
     body: JSON.stringify({ sections: data })
   }
-  console.log(params)
   const resp = await fetch(`/api/course/${courseId}/sections`, params)
   await handleErrors(resp)
+  console.log('create section after')
   return await resp.json()
 }
 
-// const delay = async (ms: number): Promise<void> => {
-//   await new Promise<void>(resolve => setTimeout(() => resolve(), ms))
-// }
+const delay = async (ms: number): Promise<void> => {
+  await new Promise<void>(resolve => setTimeout(() => resolve(), ms))
+}
 
 // This is a placeholder for a real implementation (I mean, obviously :D)
 export const getCourseSections = async (key: string | undefined, courseId: string): Promise<string[]> => {
@@ -61,5 +60,6 @@ export const getCourseSections = async (key: string | undefined, courseId: strin
   //     return new Promise<string[]>((resolve, reject) => { reject(new Error('Error retrieving course section information.')) })
   //   }
   // })
+  // return sections
   return (['AAAA', 'BBBB'])
 }

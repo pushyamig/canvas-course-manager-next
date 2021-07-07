@@ -18,11 +18,11 @@ export class CreateSectionApiHandler {
   async apiCreateSectionsCall (sectionName: string, requestor: CanvasRequestor): Promise<void> {
     logger.info('######## in the apiCreateSectionsCall ########## ')
     try {
-      const endpoint = `courses/${this.courseId}/sections`
+      const endpoint = `courses/${this.courseId}/sections/dingdong`
       const method = 'POST'
       const requestBody = { course_section: { name: sectionName } }
       logger.debug(`Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`)
-      const options: GotOptions = { retry: { methods: ['POST'], statusCodes: [300] } }
+      const options: GotOptions = { retry: { limit: 2, methods: ['POST'], statusCodes: [401] } }
       const response = await requestor.requestUrl<CanvasCourse>(endpoint, method, requestBody, options)
       logger.debug(`Received response with status code ${response.statusCode} with respose ${JSON.stringify(response.body)}`)
       const section = response.body

@@ -32,8 +32,9 @@ export function isAPIErrorData (value: unknown): value is APIErrorData {
 
 export function handleAPIError (error: unknown): APIErrorData {
   if (error instanceof HTTPError) {
-    const { statusCode, body } = error.response
-    return { statusCode, message: `Error(s) from Canvas: ${CanvasService.parseErrorBody(body)}` }
+    const { statusCode, statusMessage } = error.response
+    return { statusCode, message: `Error(s) from Canvas: ${statusMessage}` }
+    // return { statusCode, message: `Error(s) from Canvas: ${CanvasService.parseErrorBody(body)}` }
   } else {
     return { statusCode: 500, message: 'A non-HTTP error occurred while communicating with Canvas.' }
   }
