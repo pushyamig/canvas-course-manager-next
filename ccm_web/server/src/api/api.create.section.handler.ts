@@ -19,7 +19,7 @@ export class CreateSectionApiHandler {
     try {
       const fake = `courses/${this.courseId}/sections/ding/dong`
       const real = `courses/${this.courseId}/sections`
-      const endpoint = Math.random() < 0.5 ? fake : fake
+      const endpoint = Math.random() < 0.5 ? real : fake
       const method = 'POST'
       const requestBody = { course_section: { name: sectionName } }
       logger.debug(`Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`)
@@ -56,7 +56,6 @@ export class CreateSectionApiHandler {
     const apiPromises = this.sections.map(async (section) => await this.apiCreateSectionsCall(section, requestor))
     await Promise.all(apiPromises)
     const stop = process.hrtime(start)
-    // https://codezup.com/measure-execution-time-javascript-node-js/
     logger.info(`Time Taken to execute: ${(stop[0] * 1e9 + stop[1]) / 1e9} seconds`)
     logger.debug(`Sections created response object: ${JSON.stringify(this.sectionsDataStore)}`)
     return this.makeReturnResponseCreateSections()
