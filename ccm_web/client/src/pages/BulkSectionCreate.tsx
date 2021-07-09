@@ -464,7 +464,7 @@ Section 001`
 
   const renderConfirm = (sectionNames: Section[]): JSX.Element => {
     return (
-      <div>
+      <div className={classes.uploadContainer}>
         {renderCSVFileName()}
         <Grid container>
           <Box clone order={{ xs: 2, sm: 1 }}>

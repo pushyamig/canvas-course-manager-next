@@ -34,7 +34,7 @@ class NotFoundError extends Error {
 const handleErrors = async (resp: Response): Promise<void> => {
   if (resp.ok) return
   let text: string
- 
+
   switch (resp.status) {
     case 401:
       text = await resp.text()

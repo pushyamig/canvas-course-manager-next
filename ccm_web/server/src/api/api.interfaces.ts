@@ -31,6 +31,13 @@ export interface CreateSectionResponse{
   error: Record<any, unknown>
 }
 
+export interface APIResponse {
+  statusCode: number
+  statusMessage: string
+  sectionName: string
+
+}
+
 export function isAPIErrorData (value: unknown): value is APIErrorData {
   return hasKeys(value, ['statusCode', 'message'])
 }
