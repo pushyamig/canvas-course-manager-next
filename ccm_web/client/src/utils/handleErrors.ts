@@ -34,6 +34,7 @@ class NotFoundError extends Error {
 const handleErrors = async (resp: Response): Promise<void> => {
   if (resp.ok) return
   let text: string
+ 
   switch (resp.status) {
     case 401:
       text = await resp.text()
@@ -49,7 +50,7 @@ const handleErrors = async (resp: Response): Promise<void> => {
       throw new NotFoundError()
     default:
       text = (JSON.parse(await resp.text()) as Error).message
-      throw new Error(text)
+      throw new Error(JSON.stringify(text))
   }
 }
 

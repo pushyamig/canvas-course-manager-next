@@ -2,9 +2,9 @@ import { IsNotEmpty, MaxLength } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class CreateSectionsDto {
-  @ApiProperty()
-  // @IsNotEmpty()
-  // @MaxLength(1000)
+  @ApiProperty({ type: [String] })
+  @IsNotEmpty({ each: true })
+  @MaxLength(250, { each: true })
   sections: string[]
 
   constructor (sections: string[]) {

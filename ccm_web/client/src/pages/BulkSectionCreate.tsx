@@ -173,7 +173,7 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
     (value: string[]) => setExistingSectionNames(value.map(s => { return s.toUpperCase() }))
   )
   const [doCreateSections, isCreateSectionsLoading, getCreateSectionsErrors] = usePromise(
-    async () => await createSections(props.ltiKey, props.globals.course.id, sectionNames),
+    async () => createSections(props.ltiKey, props.globals.course.id, sectionNames),
     (value: CreateSectionsResponse|undefined) => {
       console.log(value)
       setPageState({ state: BulkSectionCreatePageState.sectionsCreatedWithSuccess, schemaInvalidation: [], rowInvalidations: [] })
@@ -352,16 +352,27 @@ Section 001`
         </Card>
     )
   }
+  interface SectionFailedReturn {
+    failedSectionList: string
+    failedSectionsMsg: string
+  }
+  const sectionsErrorRespParser = (): SectionFailedReturn => {
+    const sectionsErrorRespPayload = getCreateSectionsErrors === undefined ? 'All section creation failes' : getCreateSectionsErrors.message
+    const s = JSON.parse(sectionsErrorRespPayload).section
+    const failedSectionList = s.error.failedSectionList
+    const failedSectionsMsg = s.error.failedSectionMsg
+    return { failedSectionList, failedSectionsMsg }
+  }
 
   const renderSectionsCreatedErrorsDisplay = (): JSX.Element => {
-    console.log(getCreateSectionsErrors?.message)
-    console.log(getCreateSectionsErrors?.name)
+    const { failedSectionList, failedSectionsMsg } = sectionsErrorRespParser()
     return (
     <Card variant='outlined'>
       <CardContent className={doneStyles.cardContent}>
         <div>
             <ErrorIcon className={doneStyles.uploadIcon} fontSize='large'/>
-            <Typography>{getCreateSectionsErrors?.message}</Typography>
+            <Typography>{`These sections ${failedSectionList} are not created `}</Typography>
+            <Typography>{`${failedSectionsMsg}`}</Typography>
         </div>
       </CardContent>
       </Card>

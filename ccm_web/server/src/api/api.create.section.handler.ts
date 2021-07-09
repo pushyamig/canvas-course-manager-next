@@ -3,7 +3,7 @@ import { CanvasCourse } from '../canvas/canvas.interfaces'
 import { CanvasService } from '../canvas/canvas.service'
 import baseLogger from '../logger'
 import { Options as GotOptions } from 'got'
-import { APIErrorData, CreateSectionResponse, handleAPIError } from './api.interfaces'
+import { CreateSectionResponse, CreateSectionReturnResponse, handleAPIError } from './api.interfaces'
 
 const logger = baseLogger.child({ filePath: __filename })
 
@@ -13,16 +13,17 @@ export class CreateSectionApiHandler {
     private readonly sections: string[],
     private readonly courseId: number) {}
 
-  private readonly sectionsDataStore: CreateSectionResponse = { createdSections: 0, givenSections: this.sections.length, statusCode: [], error: [] }
+  private readonly sectionsDataStore: CreateSectionResponse = { createdSections: 0, givenSections: this.sections.length, statusCode: [], creaseSectionsfailedList: [], error: [] }
 
   async apiCreateSectionsCall (sectionName: string, requestor: CanvasRequestor): Promise<void> {
-    logger.info('######## in the apiCreateSectionsCall ########## ')
     try {
-      const endpoint = `courses/${this.courseId}/sections/dingdong`
+      const fake = `courses/${this.courseId}/sections/ding/dong`
+      const real = `courses/${this.courseId}/sections`
+      const endpoint = Math.random() < 0.5 ? fake : real
       const method = 'POST'
       const requestBody = { course_section: { name: sectionName } }
       logger.debug(`Sending request to Canvas - Endpoint: ${endpoint}; Method: ${method}; Body: ${JSON.stringify(requestBody)}`)
-      const options: GotOptions = { retry: { limit: 2, methods: ['POST'], statusCodes: [401] } }
+      const options: GotOptions = { retry: { limit: 2, methods: ['POST'], statusCodes: [422] } }
       const response = await requestor.requestUrl<CanvasCourse>(endpoint, method, requestBody, options)
       logger.debug(`Received response with status code ${response.statusCode} with respose ${JSON.stringify(response.body)}`)
       const section = response.body
@@ -33,25 +34,28 @@ export class CreateSectionApiHandler {
     } catch (error) {
       logger.info(`SectionName for error case: ${sectionName}`)
       const apiErrorHandler = handleAPIError(error)
-      logger.error(`An error occurred while making a request to Canvas: ${JSON.stringify(error)}`)
+      logger.error(`An error occurred while making a request to Canvas ${JSON.stringify(error)}`)
       this.sectionsDataStore.statusCode.push(apiErrorHandler.statusCode)
+      this.sectionsDataStore.creaseSectionsfailedList.push(sectionName)
       this.sectionsDataStore.error.push(`${sectionName} was not created due to ${apiErrorHandler.message}`)
       logger.info(`total: ${JSON.stringify(this.sectionsDataStore)}`)
     }
   }
 
-  simplifiedReturnObject (): APIErrorData {
-    let actualStatusCodeToUi = { statusCode: 500, message: 'A non-HTTP error occurred while communicating with Canvas.' }
+  makeReturnResponseCreateSections (): CreateSectionReturnResponse {
+    let responseToFrontend = { statusCode: 500, message: { section: { success: false, error: { failedSectionList: this.sections.toString(), failedSectionMsg: 'A non-HTTP error occurred while communicating with Canvas.' } } } }
     if (this.sectionsDataStore.createdSections === this.sectionsDataStore.givenSections) {
-      actualStatusCodeToUi = { statusCode: 201, message: 'All requested sections are created' }
+      responseToFrontend = { statusCode: 201, message: { section: { success: true, error: { failedSectionList: '', failedSectionMsg: '' } } } }
     } else if (this.sectionsDataStore.createdSections < this.sectionsDataStore.givenSections) {
-      actualStatusCodeToUi = { statusCode: Math.max(...[...new Set(this.sectionsDataStore.statusCode)]), message: this.sectionsDataStore.error.toString() }
+      responseToFrontend = {
+        statusCode: Math.max(...[...new Set(this.sectionsDataStore.statusCode)]),
+        message: { section: { success: false, error: { failedSectionList: this.sectionsDataStore.creaseSectionsfailedList.toString(), failedSectionMsg: this.sectionsDataStore.error.toString() } } }
+      }
     }
-    return actualStatusCodeToUi
+    return responseToFrontend
   }
 
-  async createSectionsBase (): Promise<APIErrorData> {
-    logger.info('&&&&&&&&&&&&&&& createSectionsBase &&&&&&&&&&&&&&&&&')
+  async createSectionsBase (): Promise<CreateSectionReturnResponse> {
     const requestor = await this.canvasService.createRequestorForUser(this.userLoginId, '/api/v1/')
     logger.info(`list of sections ${JSON.stringify(this.sections)}`)
     console.time('TimeTaken For Create sections')
@@ -59,6 +63,6 @@ export class CreateSectionApiHandler {
     await Promise.all(apiPromises)
     console.timeEnd('TimeTaken For Create sections')
     logger.info(`section created response: ${JSON.stringify(this.sectionsDataStore)}`)
-    return this.simplifiedReturnObject()
+    return this.makeReturnResponseCreateSections()
   }
 }
