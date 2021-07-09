@@ -52,6 +52,7 @@ export class CreateSectionApiHandler {
 
   async createSectionsBase (): Promise<CreateSectionReturnResponse> {
     const requestor = await this.canvasService.createRequestorForUser(this.userLoginId, '/api/v1/')
+    // https://codezup.com/measure-execution-time-javascript-node-js/
     const start = process.hrtime()
     const apiPromises = this.sections.map(async (section) => await this.apiCreateSectionsCall(section, requestor))
     await Promise.all(apiPromises)
