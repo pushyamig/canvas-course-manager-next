@@ -28,8 +28,7 @@ export interface CreateSectionResponse{
   givenSections: number
   createdSections: number
   statusCode: number[]
-  creaseSectionsfailedList: string[]
-  error: string[]
+  error: Record<any, unknown>
 }
 
 export function isAPIErrorData (value: unknown): value is APIErrorData {

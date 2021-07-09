@@ -173,7 +173,7 @@ function BulkSectionCreate (props: BulkSectionCreateProps): JSX.Element {
     (value: string[]) => setExistingSectionNames(value.map(s => { return s.toUpperCase() }))
   )
   const [doCreateSections, isCreateSectionsLoading, getCreateSectionsErrors] = usePromise(
-    async () => createSections(props.ltiKey, props.globals.course.id, sectionNames),
+    async () => await createSections(props.ltiKey, props.globals.course.id, sectionNames),
     (value: CreateSectionsResponse|undefined) => {
       console.log(value)
       setPageState({ state: BulkSectionCreatePageState.sectionsCreatedWithSuccess, schemaInvalidation: [], rowInvalidations: [] })
@@ -353,26 +353,24 @@ Section 001`
     )
   }
   interface SectionFailedReturn {
-    failedSectionList: string
-    failedSectionsMsg: string
+    error: Record<string, string>
   }
   const sectionsErrorRespParser = (): SectionFailedReturn => {
     const sectionsErrorRespPayload = getCreateSectionsErrors === undefined ? 'All section creation failes' : getCreateSectionsErrors.message
-    const s = JSON.parse(sectionsErrorRespPayload).section
-    const failedSectionList = s.error.failedSectionList
-    const failedSectionsMsg = s.error.failedSectionMsg
-    return { failedSectionList, failedSectionsMsg }
+    const errors = JSON.parse(sectionsErrorRespPayload).section.error
+    console.log(errors)
+    return errors
   }
 
   const renderSectionsCreatedErrorsDisplay = (): JSX.Element => {
-    const { failedSectionList, failedSectionsMsg } = sectionsErrorRespParser()
+    const errorParsed = JSON.stringify(sectionsErrorRespParser())
+    console.log(errorParsed)
     return (
     <Card variant='outlined'>
       <CardContent className={doneStyles.cardContent}>
         <div>
             <ErrorIcon className={doneStyles.uploadIcon} fontSize='large'/>
-            <Typography>{`These sections ${failedSectionList} are not created `}</Typography>
-            <Typography>{`${failedSectionsMsg}`}</Typography>
+            <Typography>{errorParsed}</Typography>
         </div>
       </CardContent>
       </Card>

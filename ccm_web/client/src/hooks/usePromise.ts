@@ -14,8 +14,6 @@ const usePromise = <T, F extends (...args: any) => Promise<T>>(task: F, set?: (v
       if (set !== undefined) set(data)
       setError(undefined)
     } catch (error) {
-      console.log(error.message)
-      console.log('bad case of failure due to non-200 and throwing error case')
       console.error(error)
       setError(error as Error)
     } finally {
