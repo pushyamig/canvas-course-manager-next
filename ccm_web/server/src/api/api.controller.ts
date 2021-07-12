@@ -53,9 +53,4 @@ export class APIController {
     if (isAPIErrorData(result)) throw new HttpException(result, result.statusCode)
     return result
   }
-
-  @Get('sections')
-  async getSections (): Promise<any> {
-    return ['AAAA', 'BBBB']
-  }
 }

@@ -1,8 +1,7 @@
 import { SessionData } from 'express-session'
-import { HTTPError } from 'got'
 import { Injectable } from '@nestjs/common'
 
-import { APIErrorData, CreateSectionReturnResponse, Globals, HelloData } from './api.interfaces'
+import { APIErrorData, CreateSectionReturnResponse, Globals, HelloData, handleAPIError } from './api.interfaces'
 import { CanvasCourse, CanvasCourseBase } from '../canvas/canvas.interfaces'
 import { CanvasService } from '../canvas/canvas.service'
 
@@ -34,18 +33,6 @@ export class APIService {
     }
   }
 
-  static handleAPIError (error: unknown): APIErrorData {
-    if (error instanceof HTTPError) {
-      const { statusCode, body } = error.response
-      logger.error(`Received unusual status code ${String(statusCode)}`)
-      logger.error(`Response body: ${JSON.stringify(body)}`)
-      return { statusCode, message: `Error(s) from Canvas: ${CanvasService.parseErrorBody(body)}` }
-    } else {
-      logger.error(`An error occurred while making a request to Canvas: ${JSON.stringify(error)}`)
-      return { statusCode: 500, message: 'A non-HTTP error occurred while communicating with Canvas.' }
-    }
-  }
-
   async getCourseName (userLoginId: string, courseId: number): Promise<CanvasCourseBase | APIErrorData> {
     const requestor = await this.canvasService.createRequestorForUser(userLoginId, '/api/v1/')
     try {
@@ -56,7 +43,9 @@ export class APIService {
       const course = response.body
       return { id: course.id, name: course.name }
     } catch (error) {
-      return APIService.handleAPIError(error)
+      const apiError = handleAPIError(error)
+      logger.error(`Failed with ${apiError.statusCode} in getting  the course name due to ${apiError.message} `)
+      return apiError
     }
   }
 
@@ -74,14 +63,15 @@ export class APIService {
       const course = response.body
       return { id: course.id, name: course.name }
     } catch (error) {
-      return APIService.handleAPIError(error)
+      const apiError = handleAPIError(error)
+      logger.error(`Failed with ${apiError.statusCode} updading course name due to ${apiError.message} `)
+      return apiError
     }
   }
 
   async createSections (userLoginId: string, course: number, sections: string[]): Promise<CreateSectionReturnResponse> {
     const requestor = await this.canvasService.createRequestorForUser(userLoginId, '/api/v1/')
     const createSectionsApiHandler = new CreateSectionApiHandler(requestor, sections, course)
-    // return await createSectionsApiHandler.createSectionsBase()
-    return await createSectionsApiHandler.createSectionBaseAlt()
+    return await createSectionsApiHandler.createSectionBase()
   }
 }
