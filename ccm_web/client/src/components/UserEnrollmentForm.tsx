@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Backdrop, Button, CircularProgress, Grid, makeStyles, Paper, Typography } from '@material-ui/core'
 
 import CanvasSettingsLink from './CanvasSettingsLink'
@@ -47,6 +47,7 @@ interface UserEnrollmentFormProps extends AddNonUMUsersLeafProps {}
 
 export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX.Element {
   const classes = useStyles()
+  const topRef = useRef<HTMLDivElement>(null)
 
   const [selectedSection, setSelectedSection] = useState<CanvasCourseSectionWithCourseName | undefined>(undefined)
 
@@ -141,6 +142,10 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
       role === undefined ||
       selectedSection === undefined
     ) {
+      window.scrollTo({
+        top: (topRef.current !== null) ? topRef.current.offsetTop : 0,
+        behavior: 'smooth'
+      })
       return setShowIncompleteAlerts(true)
     }
     setShowIncompleteAlerts(false)
@@ -277,7 +282,7 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
     }
 
     return (
-      <Grid container className={classes.container}>
+      <Grid ref={topRef} container className={classes.container}>
         <Grid item xs={12} sm={9} md={9}>
           {emailField}
           {
