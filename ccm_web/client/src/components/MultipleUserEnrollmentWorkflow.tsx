@@ -235,7 +235,7 @@ export default function MultipleUserEnrollmentWorkflow (props: MultipleUserEnrol
     const requirements = (
       <>
       <Typography>
-        The file includes four columns of data with corresponding headers:
+        The file includes 4 columns of data with corresponding headers:
       </Typography>
       <ul>
         <li>
