@@ -55,7 +55,7 @@ jobs:
     needs: build # This ensures the build job finishes successfully before starting this job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Draft Release
         id: create_release
