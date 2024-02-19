@@ -5,9 +5,9 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "incremental": true,
-    "target": "es6",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "es2022",
+    "module": "node16",
+    "moduleResolution": "node16",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "strict": true,
@@ -25,5 +25,9 @@
     /* Including webpack and .eslintrc.js to make linter happy. */
     "webpack",
     ".eslintrc.js"
-  ]
+  ],
+  "ts-node": {
+    // Tell ts-node CLI to install the --loader automatically, explained below
+    "esm": true,
+  }
 }

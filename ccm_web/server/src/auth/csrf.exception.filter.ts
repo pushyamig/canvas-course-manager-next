@@ -2,9 +2,9 @@ import { Response } from 'express'
 import { ArgumentsHost, Catch, HttpStatus } from '@nestjs/common'
 import { BaseExceptionFilter } from '@nestjs/core'
 
-import { MaybeCSRFError } from './auth.interfaces'
+import { MaybeCSRFError } from './auth.interfaces.js'
 
-import baseLogger from '../logger'
+import baseLogger from '../logger.js'
 
 /*
 Resource(s):

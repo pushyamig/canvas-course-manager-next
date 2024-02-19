@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid, makeStyles, MenuItem, Select, Typography } from '@material-ui/core'
 
-import { ClientEnrollmentType } from '../models/canvas'
+import { ClientEnrollmentType } from '../models/canvas.js'
 
 const useStyles = makeStyles((theme) => ({
   spacing: {

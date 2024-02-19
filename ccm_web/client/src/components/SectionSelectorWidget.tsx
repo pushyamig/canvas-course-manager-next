@@ -5,15 +5,15 @@ import {
   GridSize, InputLabel, List, ListItem, ListItemText, makeStyles, Menu, MenuItem, Select, TextField,
   Typography, useMediaQuery, useTheme
 } from '@material-ui/core'
-import ClearIcon from '@material-ui/icons/Clear'
-import SortIcon from '@material-ui/icons/Sort'
+import ClearIcon from '@material-ui/icons/Clear.js'
+import SortIcon from '@material-ui/icons/Sort.js'
 import { useDebounce } from '@react-hook/debounce'
 
-import APIErrorMessage from './APIErrorMessage'
-import { unmergeSections } from '../api'
-import usePromise from '../hooks/usePromise'
-import { CanvasCourseSectionBase, CanvasCourseSectionWithCourseName, ICanvasCourseSectionSort } from '../models/canvas'
-import { ISectionSearcher } from '../utils/SectionSearcher'
+import APIErrorMessage from './APIErrorMessage.js'
+import { unmergeSections } from '../api.js'
+import usePromise from '../hooks/usePromise.js'
+import { CanvasCourseSectionBase, CanvasCourseSectionWithCourseName, ICanvasCourseSectionSort } from '../models/canvas.js'
+import { ISectionSearcher } from '../utils/SectionSearcher.js'
 
 const useStyles = makeStyles((theme) => ({
   listContainer: {

@@ -1,8 +1,14 @@
-import * as path from 'path'
-import * as webpack from 'webpack'
+import path from 'node:path'
+import webpack from 'webpack'
+import { fileURLToPath } from 'node:url'
 import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 
+console.log('webpack Common File')
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+console.log('dirname', __dirname)
+console.log('filename', fileURLToPath(import.meta.url))
 const clientPath = path.resolve(__dirname, '..', 'client')
 
 const commonConfig: webpack.Configuration = {

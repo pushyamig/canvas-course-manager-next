@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
-import usePromise from './usePromise'
-import * as api from '../api'
-import { Globals } from '../models/models'
+import usePromise from './usePromise.js'
+import * as api from '../api.js'
+import { Globals } from '../models/models.js'
 
 /*
 Hook for fetching global data, checking whether user is authenticated, and

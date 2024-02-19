@@ -1,35 +1,35 @@
 import React, { useState } from 'react'
 import { Backdrop, Box, Button, CircularProgress, Grid, Link, makeStyles, Typography } from '@material-ui/core'
 
-import APIErrorMessage from './APIErrorMessage'
-import BulkApiErrorContent from './BulkApiErrorContent'
-import BulkEnrollUMUserConfirmationTable from './BulkEnrollUMUserConfirmationTable'
-import ConfirmDialog from './ConfirmDialog'
-import CreateSelectSectionWidget from './CreateSelectSectionWidget'
-import CSVFileName from './CSVFileName'
-import ErrorAlert from './ErrorAlert'
-import ExampleFileDownloadHeader, { ExampleFileDownloadHeaderProps } from './ExampleFileDownloadHeader'
-import FileUpload from './FileUpload'
-import RowLevelErrorsContent from './RowLevelErrorsContent'
-import SuccessCard from './SuccessCard'
-import ValidationErrorTable, { RowValidationError } from './ValidationErrorTable'
-import WorkflowStepper from './WorkflowStepper'
-import * as api from '../api'
-import usePromise from '../hooks/usePromise'
+import APIErrorMessage from './APIErrorMessage.js'
+import BulkApiErrorContent from './BulkApiErrorContent.js'
+import BulkEnrollUMUserConfirmationTable from './BulkEnrollUMUserConfirmationTable.js'
+import ConfirmDialog from './ConfirmDialog.js'
+import CreateSelectSectionWidget from './CreateSelectSectionWidget.js'
+import CSVFileName from './CSVFileName.js'
+import ErrorAlert from './ErrorAlert.js'
+import ExampleFileDownloadHeader, { ExampleFileDownloadHeaderProps } from './ExampleFileDownloadHeader.js'
+import FileUpload from './FileUpload.js'
+import RowLevelErrorsContent from './RowLevelErrorsContent.js'
+import SuccessCard from './SuccessCard.js'
+import ValidationErrorTable, { RowValidationError } from './ValidationErrorTable.js'
+import WorkflowStepper from './WorkflowStepper.js'
+import * as api from '../api.js'
+import usePromise from '../hooks/usePromise.js'
 import {
   CanvasCourseBase, CanvasCourseSection, CanvasCourseSectionWithCourseName, ClientEnrollmentType,
   injectCourseName
-} from '../models/canvas'
+} from '../models/canvas.js'
 import {
   EnrollmentRecord, isEnrollmentRecord, MAX_ENROLLMENT_MESSAGE, MAX_ENROLLMENT_RECORDS,
   REQUIRED_ENROLLMENT_HEADERS, RowNumberedAddEnrollment, USER_ID_TEXT, USER_ROLE_TEXT
-} from '../models/enrollment'
-import { AddUMUsersLeafProps } from '../models/FeatureUIData'
-import { CSVWorkflowStep, InvalidationType } from '../models/models'
-import CSVSchemaValidator, { SchemaInvalidation } from '../utils/CSVSchemaValidator'
-import { EnrollmentInvalidation, LoginIDRowsValidator, RoleRowsValidator } from '../utils/enrollmentValidators'
-import FileParserWrapper, { CSVRecord } from '../utils/FileParserWrapper'
-import { getRowNumber } from '../utils/fileUtils'
+} from '../models/enrollment.js'
+import { AddUMUsersLeafProps } from '../models/FeatureUIData.js'
+import { CSVWorkflowStep, InvalidationType } from '../models/models.js'
+import CSVSchemaValidator, { SchemaInvalidation } from '../utils/CSVSchemaValidator.js'
+import { EnrollmentInvalidation, LoginIDRowsValidator, RoleRowsValidator } from '../utils/enrollmentValidators.js'
+import FileParserWrapper, { CSVRecord } from '../utils/FileParserWrapper.js'
+import { getRowNumber } from '../utils/fileUtils.js'
 
 const useStyles = makeStyles(theme => ({
   spacing: {

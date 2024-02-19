@@ -3,14 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 
-import { AuthController } from './auth.controller'
-import { AuthService } from './auth.service'
-import { CSRFExceptionFilter } from './csrf.exception.filter'
-import { CSRFProtectionMiddleware } from './csrf.middleware'
-import { JwtStrategy } from './jwt.strategy'
-import { UserModule } from '../user/user.module'
+import { AuthController } from './auth.controller.js'
+import { AuthService } from './auth.service.js'
+import { CSRFExceptionFilter } from './csrf.exception.filter.js'
+import { CSRFProtectionMiddleware } from './csrf.middleware.js'
+import { JwtStrategy } from './jwt.strategy.js'
+import { UserModule } from '../user/user.module.js'
 
-import { Config } from '../config'
+import { Config } from '../config.js'
 
 @Module({
   imports: [

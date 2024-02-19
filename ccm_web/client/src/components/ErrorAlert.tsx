@@ -1,8 +1,8 @@
 import React from 'react'
 import { Button, makeStyles, Typography } from '@material-ui/core'
-import ErrorIcon from '@material-ui/icons/Error'
+import ErrorIcon from '@material-ui/icons/Error.js'
 
-import Alert from './Alert'
+import Alert from './Alert.js'
 
 const useStyles = makeStyles((theme) => ({
   dialogIcon: {

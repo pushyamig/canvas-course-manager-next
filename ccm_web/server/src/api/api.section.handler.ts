@@ -1,14 +1,14 @@
 import CanvasRequestor from '@kth/canvas-api'
 
-import { APIErrorData } from './api.interfaces'
-import { createLimitedPromises, handleAPIError, HttpMethod, makeResponse } from './api.utils'
-import { SectionUserDto } from './dtos/api.section.users.dto'
+import { APIErrorData } from './api.interfaces.js'
+import { createLimitedPromises, handleAPIError, HttpMethod, makeResponse } from './api.utils.js'
+import { SectionUserDto } from './dtos/api.section.users.dto.js'
 import {
-  CanvasCourseSection, CanvasCourseSectionBase, CanvasEnrollment, CanvasEnrollmentWithUser, CanvasRole, UserEnrollmentType, CustomCanvasRoleType, getCanvasRole
-} from '../canvas/canvas.interfaces'
+  CanvasCourseSection, CanvasCourseSectionBase, CanvasEnrollment, CanvasEnrollmentWithUser, UserEnrollmentType, CustomCanvasRoleType, getCanvasRole
+} from '../canvas/canvas.interfaces.js'
 
-import baseLogger from '../logger'
-import { CustomCanvasRoleData } from '../config'
+import baseLogger from '../logger.js'
+import { CustomCanvasRoleData } from '../config.js'
 
 const logger = baseLogger.child({ filePath: __filename })
 

@@ -1,8 +1,8 @@
 import React from 'react'
 import { Button, makeStyles, Paper, Typography } from '@material-ui/core'
-import CloudDoneIcon from '@material-ui/icons/CloudDone'
+import CloudDoneIcon from '@material-ui/icons/CloudDone.js'
 
-import { DownloadData } from '../models/models'
+import { DownloadData } from '../models/models.js'
 
 const useStyles = makeStyles((theme) => ({
   padding: {

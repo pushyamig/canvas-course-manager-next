@@ -1,10 +1,10 @@
 import React from 'react'
 import { makeStyles, Tooltip, Typography } from '@material-ui/core'
-import HelpOutline from '@material-ui/icons/HelpOutline'
+import HelpOutline from '@material-ui/icons/HelpOutline.js'
 
-import CreateSectionWidget from './CreateSectionWidget'
-import SectionSelectorWidget from './SectionSelectorWidget'
-import { CanvasCourseBase, CanvasCourseSection, CanvasCourseSectionWithCourseName } from '../models/canvas'
+import CreateSectionWidget from './CreateSectionWidget.js'
+import SectionSelectorWidget from './SectionSelectorWidget.js'
+import { CanvasCourseBase, CanvasCourseSection, CanvasCourseSectionWithCourseName } from '../models/canvas.js'
 
 const useStyles = makeStyles((theme) => ({
   spacing: {

@@ -1,9 +1,11 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Umzug, SequelizeStorage } from 'umzug'
 import { Sequelize } from 'sequelize'
-import { validateConfig } from './config'
-import baseLogger from './logger'
+import { validateConfig } from './config.js'
+import baseLogger from './logger.js'
 
-const logger = baseLogger.child({ filePath: __filename })
+const logger = baseLogger.child({ filePath: fileURLToPath(import.meta.url) })
 
 const databaseConfig = validateConfig().db
 
@@ -19,7 +21,7 @@ const sequelize = new Sequelize(
 
 export const umzug = new Umzug({
   migrations: {
-    glob: ['migrations/*.{js,ts}', { cwd: __dirname }],
+    glob: ['migrations/*.{js,ts}', { cwd: path.dirname(fileURLToPath(import.meta.url)) }],
     resolve: (params) => {
       return Umzug.defaultResolver(params)
     }
@@ -31,7 +33,7 @@ export const umzug = new Umzug({
 
 export type Migration = typeof umzug._types.migration
 
-if (require.main === module) {
+if (import.meta.url === new URL(import.meta.url).pathname) {
   logger.info('Running migrations CLI...')
   umzug
     .runAsCLI()

@@ -4,7 +4,7 @@ import { Button, Grid, TextField, Typography } from '@material-ui/core'
 import { Edit as EditIcon } from '@material-ui/icons'
 import { CODE_ENTER, CODE_NUMPAD_ENTER, CODE_ESCAPE } from 'keycode-js'
 
-import { ValidationResult } from '../utils/validation'
+import { ValidationResult } from '../utils/validation.js'
 
 interface InlineTextEditProps {
   text: string

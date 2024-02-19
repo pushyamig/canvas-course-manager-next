@@ -3,10 +3,10 @@ import { useSnackbar } from 'notistack'
 import React, { ChangeEvent, useState } from 'react'
 import { Button, Grid, makeStyles, TextField } from '@material-ui/core'
 
-import APIErrorMessage from './APIErrorMessage'
-import { addCourseSections } from '../api'
-import { CanvasCourseBase, CanvasCourseSection } from '../models/canvas'
-import { CanvasCoursesSectionNameValidator, ICanvasSectionNameInvalidError } from '../utils/canvasSectionNameValidator'
+import APIErrorMessage from './APIErrorMessage.js'
+import { addCourseSections } from '../api.js'
+import { CanvasCourseBase, CanvasCourseSection } from '../models/canvas.js'
+import { CanvasCoursesSectionNameValidator, ICanvasSectionNameInvalidError } from '../utils/canvasSectionNameValidator.js'
 
 const useStyles = makeStyles((theme) => ({
   root: {

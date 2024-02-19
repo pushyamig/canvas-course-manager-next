@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid, makeStyles, Paper } from '@material-ui/core'
-import red from '@material-ui/core/colors/red'
-import ErrorIcon from '@material-ui/icons/Error'
+import red from '@material-ui/core/colors/red.js'
+import ErrorIcon from '@material-ui/icons/Error.js'
 
 const useStyles = makeStyles((theme) => ({
   alert: {

@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core'
 
-import { AppModule } from './app.module'
+import { AppModule } from './app.module.js'
 
-import baseLogger from './logger'
+import baseLogger from './logger.js'
 
 const logger = baseLogger.child({ filePath: __filename })
 

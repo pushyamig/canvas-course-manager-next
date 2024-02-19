@@ -1,10 +1,10 @@
 import { Column, HasOne, Model, Table, Unique } from 'sequelize-typescript'
 import { Optional, DataTypes } from 'sequelize'
-import { CanvasToken } from '../canvas/canvas.model'
+import { CanvasToken } from '../canvas/canvas.model.js'
 
 // https://www.npmjs.com/package/sequelize-typescript#more-strict
 
-interface UserAttributes {
+export interface UserAttributes {
   id: bigint
   loginId: string
   firstName: string

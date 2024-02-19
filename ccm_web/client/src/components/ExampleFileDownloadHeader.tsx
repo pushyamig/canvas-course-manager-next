@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, makeStyles, Typography } from '@material-ui/core'
 
-import { prepDownloadDataString } from '../utils/fileUtils'
+import { prepDownloadDataString } from '../utils/fileUtils.js'
 
 const useStyles = makeStyles(() => ({
   uploadHeader: {

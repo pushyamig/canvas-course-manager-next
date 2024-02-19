@@ -3,7 +3,7 @@ import {
   Accordion as MUIAccordion, AccordionDetails as MUIAccordionDetails, AccordionSummary as MUIAccordionSummary,
   makeStyles
 } from '@material-ui/core'
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore.js'
 
 const useStyles = makeStyles((theme) => ({
   container: {

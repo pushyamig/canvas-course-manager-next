@@ -2,7 +2,7 @@ import React from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { Card, CardActionArea, CardContent, Grid, makeStyles, Typography } from '@material-ui/core'
 
-import { FeatureUIProps } from '../models/FeatureUIData'
+import { FeatureUIProps } from '../models/FeatureUIData.js'
 
 const useStyles = makeStyles((theme) => ({
   cardContent: {

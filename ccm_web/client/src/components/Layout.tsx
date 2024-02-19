@@ -1,10 +1,10 @@
 import React from 'react'
 import { Divider, Grid, Link, makeStyles, Paper, Typography } from '@material-ui/core'
-import BuildIcon from '@material-ui/icons/Build'
+import BuildIcon from '@material-ui/icons/Build.js'
 
-import Breadcrumbs, { BreadcrumbsProps } from './Breadcrumbs'
-import ResponsiveHelper from './ResponsiveHelper'
-import { getCSRFToken } from '../api'
+import Breadcrumbs, { BreadcrumbsProps } from './Breadcrumbs.js'
+import ResponsiveHelper from './ResponsiveHelper.js'
+import { getCSRFToken } from '../api.js'
 
 const useStyles = makeStyles((theme) => ({
   root: {

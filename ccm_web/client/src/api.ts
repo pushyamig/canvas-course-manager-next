@@ -2,10 +2,10 @@ import Cookies from 'js-cookie'
 import {
   CanvasCourseBase, CanvasCourseSection, CanvasCourseSectionBase, CanvasEnrollment,
   CanvasUserCondensed, CourseWithSections
-} from './models/canvas'
-import { ExternalUserSuccess } from './models/externalUser'
-import { Globals } from './models/models'
-import handleErrors, { CanvasError } from './utils/handleErrors'
+} from './models/canvas.js'
+import { ExternalUserSuccess } from './models/externalUser.js'
+import { Globals } from './models/models.js'
+import handleErrors, { CanvasError } from './utils/handleErrors.js'
 
 const jsonMimeType = 'application/json'
 
