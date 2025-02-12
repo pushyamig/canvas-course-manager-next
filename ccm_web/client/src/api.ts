@@ -64,7 +64,7 @@ export const setCourseName = async (courseId: number, newName: string): Promise<
 
 export const getCourseSections = async (courseId: number): Promise<CanvasCourseSection[]> => {
   const request = getGet()
-  const resp = await fetch('/api/course/' + courseId.toString() + '/sections/', request)
+  const resp = await fetch('/api/course/' + courseId.toString() + '/sections', request)
   await handleErrors(resp)
   return await resp.json()
 }
