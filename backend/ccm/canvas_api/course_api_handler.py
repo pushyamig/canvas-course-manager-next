@@ -9,7 +9,7 @@ from canvasapi.exceptions import CanvasException
 from canvasapi.course import Course
 from canvasapi import Canvas
 
-from backend.ccm.canvas_api.canvasapi_serializer import CourseSerializer
+from backend.ccm.canvas_api.canvasapi_serializer import CourseSectionSerializer, CourseSerializer
 from .exceptions import CanvasHTTPError
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
@@ -81,4 +81,40 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(formatted_course, status=HTTPStatus.OK)
         except (CanvasException, InvalidOAuthReturnError, Exception) as e:
             err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(request.data))
+            return Response(err_response.to_dict(), status=err_response.status_code)
+
+class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
+    logging_methods = ['POST']
+    authentication_classes = [authentication.SessionAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        operation_id="create_course_sections",
+        summary="create Course sections",
+        description="This handle course sections creation upto 60 sections.",
+        request=CourseSectionSerializer,
+    )
+    def post(self, request: Request, course_id: int) -> Response:
+        serializer = CourseSectionSerializer(data=request.data)
+        if serializer.is_valid():
+            sections = serializer.validated_data['sections']
+            try:
+                canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
+                created_sections = []
+                for section_name in sections:
+                    section = canvas_api.get_course(course_id).create_course_section(course_section={'name': section_name})
+                    created_sections.append({
+                        'name': section.name
+                    })
+                return Response(created_sections, status=HTTPStatus.CREATED)
+            except CanvasException as e:
+                logger.error(f"Canvas API error: {e}")
+                err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
+                return Response(err_response.to_dict(), status=err_response.status_code)
+            except InvalidOAuthReturnError as e:
+                err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(course_id))
+                return Response(err_response.to_dict(), status=err_response.status_code)
+        else:
+            logger.error(f"Serializer error: {serializer.errors}")
+            err_response: CanvasHTTPError = CanvasHTTPError(serializer.errors, HTTPStatus.BAD_REQUEST.value, str(request.data))
             return Response(err_response.to_dict(), status=err_response.status_code)
