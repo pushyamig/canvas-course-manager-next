@@ -1,4 +1,4 @@
-import logging
+import logging, asyncio
 from http import HTTPStatus
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
@@ -100,13 +100,19 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
             sections = serializer.validated_data['sections']
             try:
                 canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
-                created_sections = []
-                for section_name in sections:
-                    section = canvas_api.get_course(course_id).create_course_section(course_section={'name': section_name})
-                    created_sections.append({
-                        'name': section.name
-                    })
-                return Response(created_sections, status=HTTPStatus.CREATED)
+                 # Run section creation in parallel using asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                results = loop.run_until_complete(self.create_sections(canvas_api, course_id, sections))
+                
+                return Response(results, status=HTTPStatus.CREATED)
+                # created_sections = []
+                # for section_name in sections:
+                #     section = canvas_api.get_course(course_id).create_course_section(course_section={'name': section_name})
+                #     created_sections.append({
+                #         'name': section.name
+                #     })
+                # return Response(created_sections, status=HTTPStatus.CREATED)
             except CanvasException as e:
                 logger.error(f"Canvas API error: {e}")
                 err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
@@ -118,3 +124,21 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
             logger.error(f"Serializer error: {serializer.errors}")
             err_response: CanvasHTTPError = CanvasHTTPError(serializer.errors, HTTPStatus.BAD_REQUEST.value, str(request.data))
             return Response(err_response.to_dict(), status=err_response.status_code)
+        
+    async def create_sections(self, canvas_api, course_id, section_names):
+        """Creates multiple sections concurrently."""
+        tasks = [create_section(canvas_api, course_id, name) for name in section_names]
+        return await asyncio.gather(*tasks)
+
+def create_section_sync(canvas_api: Canvas, course_id: int, section_name: str):
+    """Creates a section synchronously with automatic retry handling."""
+    section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
+    return {"name": section.name, "status": "Created"}
+
+async def create_section(canvas_api: Canvas, course_id: int, section_name: str):
+    """Async wrapper to call create_section_sync using asyncio.to_thread()."""
+    try:
+        return await asyncio.to_thread(create_section_sync, canvas_api, course_id, section_name)
+    except Exception as e:
+        return {"name": section_name, "status": "Failed", "error": str(e)}
+
