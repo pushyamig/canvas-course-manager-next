@@ -127,18 +127,18 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         
     async def create_sections(self, canvas_api, course_id, section_names):
         """Creates multiple sections concurrently."""
-        tasks = [create_section(canvas_api, course_id, name) for name in section_names]
+        tasks = [self.create_section(canvas_api, course_id, name) for name in section_names]
         return await asyncio.gather(*tasks)
 
-def create_section_sync(canvas_api: Canvas, course_id: int, section_name: str):
-    """Creates a section synchronously with automatic retry handling."""
-    section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
-    return {"name": section.name, "status": "Created"}
+    def create_section_sync(self, canvas_api: Canvas, course_id: int, section_name: str):
+        """Creates a section synchronously with automatic retry handling."""
+        section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
+        return {"name": section.name, "status": "Created"}
 
-async def create_section(canvas_api: Canvas, course_id: int, section_name: str):
-    """Async wrapper to call create_section_sync using asyncio.to_thread()."""
-    try:
-        return await asyncio.to_thread(create_section_sync, canvas_api, course_id, section_name)
-    except Exception as e:
-        return {"name": section_name, "status": "Failed", "error": str(e)}
+    async def create_section(self, canvas_api: Canvas, course_id: int, section_name: str):
+        """Async wrapper to call create_section_sync using asyncio.to_thread()."""
+        try:
+            return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
+        except Exception as e:
+            return {"name": section_name, "status": "Failed", "error": str(e)}
 
