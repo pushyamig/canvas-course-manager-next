@@ -11,7 +11,7 @@ services:
     environment:
       - PORT=4000
       - NODE_ENV=development
-    env_file: .env
+    env_file: ${HOME}/secrets/ccm/.env
     ports:
       - 4000:4000
       - 9229:9229
@@ -20,6 +20,7 @@ services:
       - ./ccm_web/client:/base/client:z
       # Allows for inspection/deletion of webpack bundles
       - ./ccm_web/dist:/base/dist:z
+      - ${HOME}/secrets/ccm:/secrets
     command: npm run dev
     container_name: ccm_web
     depends_on:
