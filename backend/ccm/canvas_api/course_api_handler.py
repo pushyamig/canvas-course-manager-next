@@ -1,4 +1,5 @@
 import logging, asyncio
+import time
 from http import HTTPStatus
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
@@ -100,19 +101,12 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
             sections = serializer.validated_data['sections']
             try:
                 canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
-                 # Run section creation in parallel using asyncio
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                results = loop.run_until_complete(self.create_sections(canvas_api, course_id, sections))
+                start_time = time.perf_counter()
+                results = asyncio.run(self.create_sections(canvas_api, course_id, sections))
+                end_time = time.perf_counter()
+                logger.debug(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
                 
                 return Response(results, status=HTTPStatus.CREATED)
-                # created_sections = []
-                # for section_name in sections:
-                #     section = canvas_api.get_course(course_id).create_course_section(course_section={'name': section_name})
-                #     created_sections.append({
-                #         'name': section.name
-                #     })
-                # return Response(created_sections, status=HTTPStatus.CREATED)
             except CanvasException as e:
                 logger.error(f"Canvas API error: {e}")
                 err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
