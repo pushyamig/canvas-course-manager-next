@@ -55,7 +55,8 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(formatted_course, status=HTTPStatus.OK)
         except CanvasException as e:
             logger.error(f"Canvas API error: {e}")
-            err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
+            CANVAS_CREDENTIALS.handle_revoked_token([e], request)
+            err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, str(course_id))
             return Response(err_response.to_dict(), status=err_response.status_code)
         except InvalidOAuthReturnError as e:
             err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(course_id))
@@ -82,7 +83,8 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
                 return Response(formatted_course, status=HTTPStatus.OK)
             except CanvasException as e:
                 logger.error(f"Canvas API error: {e}")
-                err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(request.data))
+                CANVAS_CREDENTIALS.handle_revoked_token([e], request)
+                err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, str(course_id))
                 return Response(err_response.to_dict(), status=err_response.status_code)
             except InvalidOAuthReturnError as e:
                 err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(course_id))
