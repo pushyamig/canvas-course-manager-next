@@ -44,7 +44,7 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
             return Response(err_response.to_dict(), status=err_response.status_code)
         
         sections: list = serializer.validated_data['sections']
-        sections = ['u1', '', 'u3']
+        sections = ['u1', '', 'u3', '']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         try:
           canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
@@ -68,18 +68,34 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         if not error_res: # No errors
             return Response(success_res, status=HTTPStatus.CREATED)
         
+        CANVAS_CREDENTIALS.handle_revoked_token(error_res, request)
+        
         partial_success = []
-        exception_list = [error_res['error'] for error_res in error_res]
-        for error in exception_list:
-            error_response = CANVAS_CREDENTIALS.handle_canvas_api_exception(error)
+        status_codes = []
+        for error_entry in error_res:
+            error_response = CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"])
             partial_success.append(error_response.to_dict())
+            status_codes.append(error_response.status_code)
+
+        # Determine the final status code based on error status codes
+        final_status_code = HTTPStatus.BAD_GATEWAY if len(set(status_codes)) > 1 else status_codes[0]
+
+        # Construct the response based on errors and successes
+        response_data = success_res if not partial_success else {"success": success_res, "errors": partial_success}
+
+        return Response(response_data, status=final_status_code)
+      
+        # exception_list = [error_res['error'] for error_res in error_res]
+        # for error in exception_list:
+        #     error_response = CANVAS_CREDENTIALS.handle_canvas_api_exception(error)
+        #     partial_success.append(error_response.to_dict())
         
-        combined_response = {
-            "success": success_res,
-            "errors": partial_success
-        }
+        # combined_response = {
+        #     "success": success_res,
+        #     "errors": partial_success
+        # }
         
-        return Response(combined_response, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        # return Response(combined_response, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             
         
     async def create_sections(self, canvas_api, course_id, section_names):
