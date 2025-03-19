@@ -1,4 +1,5 @@
-from backend.ccm.canvas_api.course_api_handler import CanvasCourseAPIHandler, CanvasCourseSectionsAPIHandler
+from backend.ccm.canvas_api.course_api_handler import CanvasCourseAPIHandler
+from backend.ccm.canvas_api.course_section_api_handler import CanvasCourseSectionsAPIHandler
 from django.urls import path
 
 urlpatterns = [
