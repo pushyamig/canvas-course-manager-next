@@ -1,5 +1,4 @@
-import logging, asyncio
-import time
+import logging
 from http import HTTPStatus
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
@@ -10,7 +9,7 @@ from canvasapi.exceptions import CanvasException
 from canvasapi.course import Course
 from canvasapi import Canvas
 
-from backend.ccm.canvas_api.canvasapi_serializer import CourseSectionSerializer, CourseSerializer
+from backend.ccm.canvas_api.canvasapi_serializer import CourseSerializer
 from .exceptions import CanvasHTTPError
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
@@ -83,61 +82,3 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
         except (CanvasException, InvalidOAuthReturnError, Exception) as e:
             err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(request.data))
             return Response(err_response.to_dict(), status=err_response.status_code)
-
-class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
-    logging_methods = ['POST']
-    authentication_classes = [authentication.SessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
-
-    @extend_schema(
-        operation_id="create_course_sections",
-        summary="create Course sections",
-        description="This handle course sections creation upto 60 sections.",
-        request=CourseSectionSerializer,
-    )
-    def post(self, request: Request, course_id: int) -> Response:
-        serializer: CourseSectionSerializer = CourseSectionSerializer(data=request.data)
-        if serializer.is_valid():
-            sections: list = serializer.validated_data['sections']
-            try:
-                canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
-                start_time: float = time.perf_counter()
-                results = asyncio.run(self.create_sections(canvas_api, course_id, sections))
-                end_time: float = time.perf_counter()
-                logger.debug(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
-                
-                return Response(results, status=HTTPStatus.CREATED)
-            except CanvasException as e:
-                logger.error(f"Canvas API error: {e}")
-                err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
-                return Response(err_response.to_dict(), status=err_response.status_code)
-            except InvalidOAuthReturnError as e:
-                err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(course_id))
-                return Response(err_response.to_dict(), status=err_response.status_code)
-            except Exception as e:
-                logger.error(f"Error creating sections: {e}")
-                err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.INTERNAL_SERVER_ERROR.value, str(request.data))
-                return Response(err_response.to_dict(), status=err_response.status_code)
-        else:
-            logger.error(f"Serializer error: {serializer.errors}")
-            err_response: CanvasHTTPError = CanvasHTTPError(serializer.errors, HTTPStatus.BAD_REQUEST.value, str(request.data))
-            return Response(err_response.to_dict(), status=err_response.status_code)
-        
-    async def create_sections(self, canvas_api, course_id, section_names):
-        """Creates multiple sections concurrently."""
-        tasks = [self.create_section(canvas_api, course_id, name) for name in section_names]
-        return await asyncio.gather(*tasks, return_exceptions=True)
-
-    def create_section_sync(self, canvas_api: Canvas, course_id: int, section_name: str):
-        """Creates a section synchronously with automatic retry handling."""
-        section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
-        return {"id": section.id,
-                "name": section.name, 
-                "course_id": section.course_id, 
-                "nonxlist_course_id": section.nonxlist_course_id,
-                "total_students": 0 }
-
-    async def create_section(self, canvas_api: Canvas, course_id: int, section_name: str):
-        """Async wrapper to call create_section_sync using asyncio.to_thread()."""
-        return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
-
