@@ -54,3 +54,13 @@ class CanvasHTTPError(Exception):
             "statusCode": self.status_code,
             "errors": self.errors
         }
+class SectionCreationError(Exception):
+    """Custom exception to capture section name along with the error details."""
+    def __init__(self, section_name, original_exception):
+        self.section_name = section_name
+        self.original_exception = original_exception
+        super().__init__(f"Failed to create section '{section_name}': {original_exception}")
+
+    def to_dict(self):
+        """Returns a dictionary representation of the error."""
+        return {"section_name": self.section_name, "error": self.original_exception}

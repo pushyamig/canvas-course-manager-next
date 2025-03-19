@@ -1,6 +1,5 @@
-
-import logging, asyncio
-import time
+import logging, asyncio, time
+from dataclasses import asdict
 from http import HTTPStatus
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
@@ -10,8 +9,9 @@ from rest_framework.request import Request
 from canvasapi.exceptions import CanvasException
 from canvasapi import Canvas
 
+from backend.ccm.canvas_api.canvasapi_dataclasses import Section
 from backend.ccm.canvas_api.canvasapi_serializer import CourseSectionSerializer
-from .exceptions import CanvasHTTPError
+from .exceptions import CanvasHTTPError, SectionCreationError
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
@@ -46,7 +46,13 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         sections: list = serializer.validated_data['sections']
         sections = ['u1', '', 'u3']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
-        canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
+        try:
+          canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
+        except InvalidOAuthReturnError as e:
+          # This case happens when user invoked tokens from canvas
+           err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(sections))
+           return Response(err_response.to_dict(), status=err_response.status_code)
+           
         
         start_time: float = time.perf_counter()
         results = asyncio.run(self.create_sections(canvas_api, course_id, sections))
@@ -54,10 +60,26 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         end_time: float = time.perf_counter()
         logger.info(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
 
-        success_res = [result for result in results if not isinstance(result, dict)]
-        error_res = [result for result in results if isinstance(result, Exception)]
+        success_res = [asdict(result) for result in results if isinstance(result, Section)]
+        error_res = [res.to_dict() for res in results if isinstance(res, SectionCreationError)]
+
+        logger.info(f"Success: {success_res}")
+        logger.info(f"Errors: {error_res}")
+        if not error_res: # No errors
+            return Response(success_res, status=HTTPStatus.CREATED)
         
-        return Response(results, status=HTTPStatus.CREATED)
+        partial_success = []
+        exception_list = [error_res['error'] for error_res in error_res]
+        for error in exception_list:
+            error_response = CANVAS_CREDENTIALS.handle_canvas_api_exception(error)
+            partial_success.append(error_response.to_dict())
+        
+        combined_response = {
+            "success": success_res,
+            "errors": partial_success
+        }
+        
+        return Response(combined_response, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             
         
     async def create_sections(self, canvas_api, course_id, section_names):
@@ -70,22 +92,22 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         try:
             logger.info(f"Creating section: {section_name} for course_id: {course_id} at {time.strftime('%H:%M:%S')}")
             section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
-            return {
-                "id": section.id,
-                "name": section.name,
-                "course_id": section.course_id,
-                "nonxlist_course_id": section.nonxlist_course_id,
-                "total_students": 0
-            }
-        except (CanvasException, InvalidOAuthReturnError, Exception) as e:
-            logger.error(f"Error creating section: {e}")
-            raise e
+            return Section(
+              id=section.id,
+              name=section.name,
+              course_id=section.course_id,
+              nonxlist_course_id=section.nonxlist_course_id
+)
+        except (CanvasException, Exception) as e:
+            logger.error(f"Error creating section '{section_name} : {e}")
+            raise SectionCreationError(section_name, e)
 
     async def create_section(self, canvas_api: Canvas, course_id: int, section_name: str):
         """Async wrapper to call create_section_sync using asyncio.to_thread()."""
         try:
             return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
-        except (CanvasException, InvalidOAuthReturnError, Exception) as e:
-            logger.error(f"Error creating section: {e}")
-            raise e
-
+        except SectionCreationError as e:
+          return e  # Return the exception object instead of raising it
+        except Exception as e:
+          logger.error(f"Unexpected error creating section '{section_name}': {e}")
+          return SectionCreationError(section_name, e)
