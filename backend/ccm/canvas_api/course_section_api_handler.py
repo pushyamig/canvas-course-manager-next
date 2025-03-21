@@ -68,10 +68,11 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         if not error_res: # No errors
             return Response(success_res, status=HTTPStatus.CREATED)
         
-        CANVAS_CREDENTIALS.handle_revoked_token(error_res, request)
+        error_list = [entry["error"] for entry in error_res]
+        CANVAS_CREDENTIALS.handle_revoked_token(error_list, request)
         
         partial_success = [
-            CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"], error_entry.get("failedInput", "")).to_dict()["errors"][0]
+            CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"], error_entry["section_name"]).to_dict()["errors"][0]
             for error_entry in error_res
         ]
 
@@ -85,52 +86,6 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
 
         # If only errors exist, return the structured error response
         return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
-        # Process errors through `handle_canvas_api_exception`
-        # partial_success = [
-        #     CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"], error_entry.get("failedInput", "")).to_dict()
-        #     for error_entry in error_res
-        # ]
-
-        # # Determine final status code dynamically based on errors
-        # status_codes = [error["statusCode"] for error in partial_success]
-        # final_status_code = HTTPStatus.BAD_GATEWAY if len(set(status_codes)) > 1 else status_codes[0]
-
-        # # If both successes and errors exist, return only the error response
-        # if success_res and partial_success:
-        #     return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
-
-        # # If only errors exist, return the structured error response
-        # return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
-        
-        # partial_success = []
-        # status_codes = []
-        # for error_entry in error_res:
-        #     error_response = CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"])
-        #     partial_success.append(error_response.to_dict())
-        #     status_codes.append(error_response.status_code)
-
-        # # Determine the final status code based on error status codes
-        # final_status_code = HTTPStatus.BAD_GATEWAY if len(set(status_codes)) > 1 else status_codes[0]
-
-        # # If there are both successes and errors, return only the error response
-        # if success_res and partial_success:
-        #     return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
-
-        # # If only errors exist, return the structured error response
-        # response_data = {"statusCode": final_status_code, "errors": partial_success}
-        # return Response(response_data, status=final_status_code)
-      
-        # exception_list = [error_res['error'] for error_res in error_res]
-        # for error in exception_list:
-        #     error_response = CANVAS_CREDENTIALS.handle_canvas_api_exception(error)
-        #     partial_success.append(error_response.to_dict())
-        
-        # combined_response = {
-        #     "success": success_res,
-        #     "errors": partial_success
-        # }
-        
-        # return Response(combined_response, status=HTTPStatus.INTERNAL_SERVER_ERROR)
             
         
     async def create_sections(self, canvas_api, course_id, section_names):
