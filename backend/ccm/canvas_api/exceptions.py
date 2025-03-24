@@ -4,11 +4,6 @@ from typing import Any, List, TypedDict
 
 class StandardCanvasErrorData(TypedDict):
     message: str
-
-
-class CanvasHTTPErrorData(TypedDict):
-    status_code: int
-    message: str
     
 class CanvasHTTPError(Exception):
     """

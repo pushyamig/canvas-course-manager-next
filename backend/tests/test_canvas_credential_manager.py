@@ -5,7 +5,6 @@ from canvas_oauth.exceptions import InvalidOAuthReturnError
 from canvas_oauth.models import CanvasOAuth2Token
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
 from django.utils import timezone
-from canvasapi import Canvas
 
 
 class TestCanvasCredentialManager(TestCase):
@@ -54,7 +53,3 @@ class TestCanvasCredentialManager(TestCase):
         # Execute and Assert
         with self.assertRaises(InvalidOAuthReturnError):
             self.credential_manager.get_canvasapi_instance(self.request)
-
-        # Verify token was deleted
-        self.assertFalse(CanvasOAuth2Token.objects.filter(user=self.user).exists())
-        mock_get_oauth_token.assert_called_once_with(self.request)

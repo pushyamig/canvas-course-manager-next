@@ -1,15 +1,14 @@
 import logging
 from http import HTTPStatus
 from django.conf import settings
-from canvas_oauth.oauth import get_oauth_token, handle_missing_token
-from requests import Response
+from canvas_oauth.oauth import get_oauth_token
 from rest_framework.request import Request
 from canvas_oauth.models import CanvasOAuth2Token
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 from canvasapi import Canvas
 from canvasapi.exceptions import (
-    BadRequest, CanvasException, Conflict, Forbidden, InvalidAccessToken, RateLimitExceeded,
+    BadRequest, Conflict, Forbidden, InvalidAccessToken, RateLimitExceeded,
     ResourceDoesNotExist, Unauthorized, UnprocessableEntity
 )
 from .exceptions import CanvasHTTPError 
@@ -17,7 +16,8 @@ from .exceptions import CanvasHTTPError
 logger = logging.getLogger(__name__)
 
 class CanvasCredentialManager:
-
+  
+  # Map of Canvas API exceptions to HTTP status codes
   EXCEPTION_STATUS_MAP = {
     BadRequest: HTTPStatus.BAD_REQUEST.value,
     InvalidAccessToken: HTTPStatus.UNAUTHORIZED.value,
@@ -38,6 +38,7 @@ class CanvasCredentialManager:
     try:
       access_token = get_oauth_token(request)
     except InvalidOAuthReturnError as e:
+      # This issue occurred during non-prod Canvas sync when the API key was deleted, but the token remained in CCM databases. Expired token will trigger the usecase.
       logger.error(f"InvalidOAuthReturnError for user: {request.user}. Remove invalid refresh_token and prompt for reauthentication.")
       raise InvalidOAuthReturnError(str(e))
     return Canvas(self.canvasURL, access_token)
