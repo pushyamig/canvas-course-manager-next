@@ -31,6 +31,7 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
     """
     authentication_classes = [authentication.SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CourseSerializer  # Ensures Swagger UI recognizes it
 
     def get(self, request: Request, course_id: int) -> Response:
         """
@@ -52,12 +53,8 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             }
             
             return Response(formatted_course, status=HTTPStatus.OK)
-        except CanvasException as e:
-            logger.error(f"Canvas API error: {e}")
+        except (CanvasException, InvalidOAuthReturnError, Exception) as e:
             err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
-            return Response(err_response.to_dict(), status=err_response.status_code)
-        except InvalidOAuthReturnError as e:
-            err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(course_id))
             return Response(err_response.to_dict(), status=err_response.status_code)
       
     @extend_schema(
@@ -69,25 +66,19 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
     def put(self, request: Request, course_id: int) -> Response:
         # Validate the incoming data using the serializer.
         serializer = CourseSerializer(data=request.data)
-        if serializer.is_valid():
-            update_data = serializer.validated_data
-            try:
-                canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
-                # Get the course instance
-                course: Course = canvas_api.get_course(course_id)
-                # Call the update method on the course instance
-                put_course_res: str= course.update(course={'name': update_data.get("newName"), 'course_code': update_data.get("newName")})
-                formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
-                return Response(formatted_course, status=HTTPStatus.OK)
-            except CanvasException as e:
-                logger.error(f"Canvas API error: {e}")
-                err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(request.data))
-                return Response(err_response.to_dict(), status=err_response.status_code)
-            except InvalidOAuthReturnError as e:
-                err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(course_id))
-                return Response(err_response.to_dict(), status=err_response.status_code)
-        else:
-            # If validation fails, return the error details.
-            logger.error(f"Serializer error: {serializer.errors}")
-            err_response: CanvasHTTPError = CanvasHTTPError(serializer.errors, HTTPStatus.INTERNAL_SERVER_ERROR.value, str(request.data))
+        if not serializer.is_valid():
+            err_response: CanvasHTTPError = CanvasCredentialManager.handle_serializer_errors(serializer.errors, request.data)
+            return Response(err_response.to_dict(), status=err_response.status_code)
+
+        update_data = serializer.validated_data
+        try:
+            canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
+            # Get the course instance
+            course: Course = canvas_api.get_course(course_id)
+            # Call the update method on the course instance
+            put_course_res: str= course.update(course={'name': update_data.get("newName"), 'course_code': update_data.get("newName")})
+            formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
+            return Response(formatted_course, status=HTTPStatus.OK)
+        except (CanvasException, InvalidOAuthReturnError, Exception) as e:
+            err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(request.data))
             return Response(err_response.to_dict(), status=err_response.status_code)
