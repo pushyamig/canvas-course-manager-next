@@ -49,7 +49,7 @@ After you start up the application 1 port is opened by default in 5678 to debug 
 
 To debug tests, it's easiest to just change the DEBUG_REMOTE_PORT on the command line to a different address and connect to that with port 5679. So for example you would run.
 
-`docker exec -it ccm_web /bin/bash -c  "DEBUGPY_WAIT_FOR_ATTACH=True DEBUGPY_ENABLE=TRUE DEBUGPY_REMOTE_PORT=5679 ./manage.py test"`
+`docker exec -it ccm_web /bin/bash -c  "DEBUGPY_WAIT_FOR_DEBUGGER=True DEBUGPY_ENABLE=TRUE DEBUGPY_REMOTE_PORT=5679 ./manage.py test"`
 
 It will wait for the debugger to attach for tests to run, and once you attach it will startup. 
 
@@ -147,13 +147,18 @@ Explicit steps for setting up CCM in a development environment.
 20. Click the "ON" part of the switch in the "State" column of your API key, so that it has a green background.
 
 #### Unit Testing
-The goal is to implement tests for the project's major components, focusing on critical functionality rather than achieving 100% code coverage. When testing a specific feature or file, create a test_*.py file in the /tests/ directory. Instead of making real-time database calls, use the unittest.mock module, including patch and MagicMock, to simulate calls with mock data.
+The goal is to implement tests for the project's major components, focusing on critical functionality rather than achieving 100% code coverage. When testing a specific feature or file, create a test_*.py file in the /tests/ directory. Instead of making real-time database calls, use the unittest.mock module, including patch and MagicMock, to simulate calls with mock data. See above debugging section for how to debug test cases
 
 1. Running all
 `docker exec -it ccm_web python manage.py test`
 2. Testing test cases from on a file
 `docker exec -it ccm_web python manage.py test backend.tests.<name-of-file-without-dotpy>`
    1. for example, `docker exec -it ccm_web python manage.py test backend.tests.test_utils`
+3. Testing single unit test 
+`docker exec -it ccm_web python manage.py test backend.tests.<name-of-file-without-dotpy>.<Name-of-test-class>.<unit-test-name-with-dopy>`
+   1. for example, `docker exec -it ccm_web python manage.py test backend.tests.test_course_api_handler.CanvasCourseAPIHandlerTests.test_handle_canvas_api_exception_invalid_access_token`
+
+
 #### Deploying to GitHub Pages
 
 To deploy the latest changes to the GitHub Pages site, follow the steps below:
