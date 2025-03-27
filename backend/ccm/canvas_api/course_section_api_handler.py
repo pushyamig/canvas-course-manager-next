@@ -39,19 +39,17 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
     def post(self, request: Request, course_id: int) -> Response:
         serializer: CourseSectionSerializer = CourseSectionSerializer(data=request.data)
         if not serializer.is_valid():
-            logger.error(f"Serializer error: {serializer.errors}")
-            err_response: CanvasHTTPError = CanvasHTTPError(serializer.errors, HTTPStatus.BAD_REQUEST.value, str(request.data))
+            err_response: CanvasHTTPError = CanvasCredentialManager.handle_serializer_errors(serializer.errors, request.data)
             return Response(err_response.to_dict(), status=err_response.status_code)
         
         sections: list = serializer.validated_data['sections']
-        # sections = ['u1', '', 'u3', '']
+        sections = ['u1', '', 'u3', '']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         try:
           canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
         except InvalidOAuthReturnError as e:
-          # This case happens when user invoked tokens from canvas
-           err_response: CanvasHTTPError = CanvasHTTPError(str(e), HTTPStatus.FORBIDDEN.value, str(sections))
-           return Response(err_response.to_dict(), status=err_response.status_code)
+          err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(course_id))
+          return Response(err_response.to_dict(), status=err_response.status_code)
            
         
         start_time: float = time.perf_counter()
@@ -68,8 +66,8 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         if not error_res: # No errors
             return Response(success_res, status=HTTPStatus.CREATED)
         
-        error_list = [entry["error"] for entry in error_res]
-        CANVAS_CREDENTIALS.handle_revoked_token(error_list, request)
+        # error_list = [entry["error"] for entry in error_res]
+        # CANVAS_CREDENTIALS.handle_revoked_token(error_list, request)
         
         partial_success = [
             CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"], error_entry["section_name"]).to_dict()["errors"][0]
@@ -105,15 +103,11 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
               nonxlist_course_id=section.nonxlist_course_id
 )
         except (CanvasException, Exception) as e:
-            logger.error(f"Error creating section '{section_name} : {e}")
             raise SectionCreationError(section_name, e)
 
     async def create_section(self, canvas_api: Canvas, course_id: int, section_name: str):
         """Async wrapper to call create_section_sync using asyncio.to_thread()."""
         try:
             return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
-        except SectionCreationError as e:
-          return e  # Return the exception object instead of raising it
         except Exception as e:
-          logger.error(f"Unexpected error creating section '{section_name}': {e}")
-          return SectionCreationError(section_name, e)
+          return e if isinstance(e, SectionCreationError) else SectionCreationError(section_name, e)

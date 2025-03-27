@@ -1,10 +1,11 @@
 import logging
 from http import HTTPStatus
 from django.conf import settings
-from canvas_oauth.oauth import get_oauth_token, handle_missing_token
+from canvas_oauth.oauth import get_oauth_token
 from rest_framework.request import Request
 from canvas_oauth.models import CanvasOAuth2Token
 from canvas_oauth.exceptions import InvalidOAuthReturnError
+from typing import Union, List
 
 from canvasapi import Canvas
 from canvasapi.exceptions import (
@@ -45,20 +46,17 @@ class CanvasCredentialManager:
   
   def handle_canvas_api_exception(self, exception: Exception, request: Request, input: str = None) -> CanvasHTTPError:
     logger.error(f"API error occcured : {exception}")
-    self.handle_revoked_token(exception, request)
     
-  def handle_canvas_api_exception(self, exception: Exception, input: str = None) -> CanvasHTTPError:
-    for class_key in self.EXCEPTION_STATUS_MAP:
-        if isinstance(exception, class_key):
-            return CanvasHTTPError(str(exception), self.EXCEPTION_STATUS_MAP[class_key], input)
-    return CanvasHTTPError(str(exception), HTTPStatus.INTERNAL_SERVER_ERROR.value, input)
+    self.handle_revoked_token(exception, request)
+    status_code = next((self.EXCEPTION_STATUS_MAP[exc] for exc in self.EXCEPTION_STATUS_MAP if isinstance(exception, exc)), HTTPStatus.INTERNAL_SERVER_ERROR.value)
+    return CanvasHTTPError(str(exception), status_code, input)
 
-  def handle_revoked_token(self, exceptions, request):
-     for exception in exceptions:
-      if isinstance(exception, (InvalidAccessToken, InvalidOAuthReturnError, Unauthorized)):
-          CanvasOAuth2Token.objects.filter(user=request.user).delete()
-          logger.error(f"Deleted the Canvas OAuth2 token for user: {request.user} since they might have revoked access.")
-          break
+  def handle_revoked_token(self, exceptions: Union[Exception, List[Exception]], request: Request):
+      exceptions = exceptions if isinstance(exceptions, list) else [exceptions]
+
+      if any(isinstance(exc, (InvalidAccessToken, InvalidOAuthReturnError, Unauthorized)) for exc in exceptions):
+        CanvasOAuth2Token.objects.filter(user=request.user).delete()
+        logger.error(f"Deleted the Canvas OAuth2 token for user: {request.user} since they might have revoked access.")
   
   def handle_serializer_errors(self, serializer_errors: dict, input: str = None) -> CanvasHTTPError:
       logger.error(f"Serializer error: {serializer_errors} occured during the API call.")

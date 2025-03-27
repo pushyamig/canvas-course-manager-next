@@ -25,7 +25,7 @@ const ccmGlobals = Object.freeze(JSON.parse(ccmGlobalEl.textContent))
 
 const root = createRoot(document.getElementById('root') as Element)
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>
    <StyledEngineProvider injectFirst>
      <ThemeProvider theme={ccmTheme}>
       <SnackbarProvider maxSnack={3}>
@@ -39,5 +39,5 @@ root.render(
       </SnackbarProvider>
      </ThemeProvider>
    </StyledEngineProvider>
-  </React.StrictMode>
+  // </React.StrictMode>
 )
