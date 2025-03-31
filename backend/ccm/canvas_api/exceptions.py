@@ -1,5 +1,11 @@
+from http import HTTPStatus
 import json
 from typing import Any, List, TypedDict
+from canvasapi.exceptions import (
+    BadRequest, Conflict, Forbidden, InvalidAccessToken, RateLimitExceeded,
+    ResourceDoesNotExist, Unauthorized, UnprocessableEntity
+)
+from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 
 class StandardCanvasErrorData(TypedDict):
@@ -15,21 +21,28 @@ class CanvasHTTPError(Exception):
     message: str
     status_code: int
     errors: List[dict]
+    EXCEPTION_STATUS_MAP = {
+        BadRequest: HTTPStatus.BAD_REQUEST.value,
+        InvalidAccessToken: HTTPStatus.UNAUTHORIZED.value,
+        Unauthorized: HTTPStatus.UNAUTHORIZED.value,
+        Forbidden: HTTPStatus.FORBIDDEN.value,
+        RateLimitExceeded: HTTPStatus.FORBIDDEN.value,
+        ResourceDoesNotExist: HTTPStatus.NOT_FOUND.value,
+        UnprocessableEntity: HTTPStatus.UNPROCESSABLE_ENTITY.value,
+        Conflict: HTTPStatus.CONFLICT.value,
+        InvalidOAuthReturnError: HTTPStatus.FORBIDDEN.value
+    }
 
-    def __init__(self, error_data: Any, status_code: int, failed_input: str = None) -> None:
+    def __init__(self, error_data: Any, status_code: int = None, failed_input: str = None) -> None:
         self.errors = []
-        if (
-            isinstance(error_data, list) and
-            all([isinstance(obj, dict) for obj in error_data]) and
-            all(['message' in obj for obj in error_data]) and
-            all([isinstance(obj['message'], str) for obj in error_data])
-        ):
+        self.status_code = HTTPStatus.BAD_GATEWAY.value
+        if (isinstance(error_data, list) ):
             canvas_error_data: List[StandardCanvasErrorData] = error_data
             for error in canvas_error_data:
                 self.errors.append({
-                    "canvasStatusCode": status_code,
-                    "message": error['message'],
-                    "failedInput": failed_input
+                    "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error['error']), HTTPStatus.INTERNAL_SERVER_ERROR.value),
+                    "message": str(error['error']),
+                    "failedInput": error['failed_input']
                 })
         elif isinstance(error_data, str):
             self.errors.append({
@@ -44,23 +57,23 @@ class CanvasHTTPError(Exception):
                 "failedInput": failed_input
             })
 
-        self.status_code = status_code
+        self.status_code = status_code if len({error["canvasStatusCode"] for error in self.errors}) == 1 else HTTPStatus.BAD_GATEWAY.value
 
     def __str__(self) -> str:
-        return f'Status code: {self.status_code}; Errors: {self.errors}'
+        return f'Errors: {self.errors}'
 
     def to_dict(self) -> dict:
         return {
-            "statusCode": self.status_code,
+            "statusCode": self.errors[0].get("canvasStatusCode") if self.errors else HTTPStatus.INTERNAL_SERVER_ERROR.value,
             "errors": self.errors
         }
-class SectionCreationError(Exception):
-    """Custom exception to capture section name along with the error details."""
-    def __init__(self, section_name, original_exception):
-        self.section_name = section_name
+class HTTPAPIError(Exception):
+    """Custom exception to capture failed input along with the error details."""
+    def __init__(self, failed_input: str, original_exception: Exception):
+        self.failed_input = failed_input
         self.original_exception = original_exception
-        super().__init__(f"Failed to create section '{section_name}': {original_exception}")
+        super().__init__(f"Exception due failed input '{failed_input}': {original_exception}")
 
     def to_dict(self):
         """Returns a dictionary representation of the error."""
-        return {"section_name": self.section_name, "error": self.original_exception}
+        return {"failed_input": self.failed_input, "error": self.original_exception}

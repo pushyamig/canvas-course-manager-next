@@ -11,7 +11,7 @@ from canvasapi import Canvas
 
 from backend.ccm.canvas_api.canvasapi_dataclasses import Section
 from backend.ccm.canvas_api.canvasapi_serializer import CourseSectionSerializer
-from .exceptions import CanvasHTTPError, SectionCreationError
+from .exceptions import CanvasHTTPError, HTTPAPIError
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
@@ -43,7 +43,8 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
             return Response(err_response.to_dict(), status=err_response.status_code)
         
         sections: list = serializer.validated_data['sections']
-        sections = ['u1', '', 'u3', '']
+        a = 'AlexanderMaximilianTheodoreBartholomewChristopherNathanielMontgomeryFitzgeraldBenjaminWellingtonSebastianJonathanAugustusDominicReginaldCorneliusHarrisonMaxwellNicholasFranklinFrederickEmmanuelLeopoldTheophilusAmbroseGideonValentinePeregrineBalthazarOctaviusCassiusSeraphimThaddeusArchibaldIgnatiusSylvesterAlistairDemetriusLysanderPhineasQuintilianEzekielZacharias'
+        sections = ['u1', a, 'u3','']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         try:
           canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
@@ -59,31 +60,40 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         logger.info(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
 
         success_res = [asdict(result) for result in results if isinstance(result, Section)]
-        error_res = [res.to_dict() for res in results if isinstance(res, SectionCreationError)]
+        error_res = [res.to_dict() for res in results if isinstance(res, HTTPAPIError)]
 
         logger.info(f"Success: {success_res}")
         logger.info(f"Errors: {error_res}")
         if not error_res: # No errors
             return Response(success_res, status=HTTPStatus.CREATED)
         
-        # error_list = [entry["error"] for entry in error_res]
-        # CANVAS_CREDENTIALS.handle_revoked_token(error_list, request)
+        # Handle errors
+        err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(error_res, request)
+        logger.error(f"Error response: {err_response}")
+        logger.error(f"Error response to_dict: {err_response.to_dict()}")
+        logger.error(f"Error response status: {err_response.to_dict().get('statusCode')}")
+        return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         
-        partial_success = [
-            CANVAS_CREDENTIALS.handle_canvas_api_exception(error_entry["error"], error_entry["section_name"]).to_dict()["errors"][0]
-            for error_entry in error_res
-        ]
+        # CANVAS_CREDENTIALS.handle_revoked_token(
+        #     [entry["error"] for entry in error_res], request
+        # )
+        
+        # partial_success = [
+        #     CANVAS_CREDENTIALS.handle_err_response(error_entry["error"], error_entry["failed_input"]).to_dict()["errors"][0]
+        #     for error_entry in error_res
+        # ]
+        # logger.error(f"Partial success: {partial_success}")
 
-        # Determine final status code dynamically
-        status_codes = [error["canvasStatusCode"] for error in partial_success]
-        final_status_code = HTTPStatus.BAD_GATEWAY if len(set(status_codes)) > 1 else status_codes[0]
+        # # Determine final status code dynamically
+        # status_codes = [error["canvasStatusCode"] for error in partial_success]
+        # final_status_code = HTTPStatus.BAD_GATEWAY if len(set(status_codes)) > 1 else status_codes[0]
 
-        # If both successes and errors exist, return only the error response
-        if success_res and partial_success:
-            return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
+        # # If both successes and errors exist, return only the error response
+        # if success_res and partial_success:
+        #     return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
 
-        # If only errors exist, return the structured error response
-        return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
+        # # If only errors exist, return the structured error response
+        # return Response({"statusCode": final_status_code, "errors": partial_success}, status=final_status_code)
             
         
     async def create_sections(self, canvas_api, course_id, section_names):
@@ -103,11 +113,11 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
               nonxlist_course_id=section.nonxlist_course_id
 )
         except (CanvasException, Exception) as e:
-            raise SectionCreationError(section_name, e)
+            raise HTTPAPIError(section_name, e)
 
     async def create_section(self, canvas_api: Canvas, course_id: int, section_name: str):
         """Async wrapper to call create_section_sync using asyncio.to_thread()."""
         try:
             return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
         except Exception as e:
-          return e if isinstance(e, SectionCreationError) else SectionCreationError(section_name, e)
+          return e if isinstance(e, HTTPAPIError) else HTTPAPIError(section_name, e)

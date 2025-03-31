@@ -69,7 +69,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'canvas_oauth.middleware.OAuthMiddleware',
-    'csp.middleware.CSPMiddleware'
+    'csp.middleware.CSPMiddleware',
+    # 'backend.middleware.TokenValidationMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
