@@ -8,8 +8,9 @@ from canvasapi.exceptions import (
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 
-class StandardCanvasErrorData(TypedDict):
-    message: str
+class ErrorData(TypedDict):
+    failed_input: str
+    exeption: Exception
     
 class CanvasHTTPError(Exception):
     """
@@ -33,38 +34,21 @@ class CanvasHTTPError(Exception):
         InvalidOAuthReturnError: HTTPStatus.FORBIDDEN.value
     }
 
-    def __init__(self, error_data: Any, status_code: int = None, failed_input: str = None) -> None:
+    def __init__(self, error_data: List[ErrorData]) -> None:
         self.errors = []
-        self.status_code = HTTPStatus.BAD_GATEWAY.value
-        if (isinstance(error_data, list) ):
-            canvas_error_data: List[StandardCanvasErrorData] = error_data
-            for error in canvas_error_data:
-                self.errors.append({
-                    "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error['error']), HTTPStatus.INTERNAL_SERVER_ERROR.value),
-                    "message": str(error['error']),
-                    "failedInput": error['failed_input']
-                })
-        elif isinstance(error_data, str):
+        for error in error_data:
             self.errors.append({
-                "canvasStatusCode": status_code,
-                "message": error_data,
-                "failedInput": failed_input
+                "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error['error']), HTTPStatus.INTERNAL_SERVER_ERROR.value),
+                "message": str(error['error']),
+                "failedInput": error['failed_input']
             })
-        else:
-            self.errors.append({
-                "canvasStatusCode": status_code,
-                "message": f'Non-standard data shape found: {json.dumps(error_data)}',
-                "failedInput": failed_input
-            })
-
-        self.status_code = status_code if len({error["canvasStatusCode"] for error in self.errors}) == 1 else HTTPStatus.BAD_GATEWAY.value
 
     def __str__(self) -> str:
         return f'Errors: {self.errors}'
 
     def to_dict(self) -> dict:
         return {
-            "statusCode": self.errors[0].get("canvasStatusCode") if self.errors else HTTPStatus.INTERNAL_SERVER_ERROR.value,
+            "statusCode": (sc.pop() if len(sc := {e["canvasStatusCode"] for e in self.errors}) == 1 else HTTPStatus.INTERNAL_SERVER_ERROR.value),
             "errors": self.errors
         }
 class HTTPAPIError(Exception):

@@ -69,9 +69,6 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         
         # Handle errors
         err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(error_res, request)
-        logger.error(f"Error response: {err_response}")
-        logger.error(f"Error response to_dict: {err_response.to_dict()}")
-        logger.error(f"Error response status: {err_response.to_dict().get('statusCode')}")
         return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         
         # CANVAS_CREDENTIALS.handle_revoked_token(
