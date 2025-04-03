@@ -11,7 +11,7 @@ from canvasapi.exceptions import (
     BadRequest, Conflict, Forbidden, InvalidAccessToken, RateLimitExceeded,
     ResourceDoesNotExist, Unauthorized, UnprocessableEntity
 )
-from .exceptions import CanvasHTTPError 
+from .exceptions import CanvasHTTPError, CanvasAccessTokenException
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,10 @@ class CanvasCredentialManager:
     return CanvasHTTPError(str(exception), HTTPStatus.INTERNAL_SERVER_ERROR.value, input)
 
   def handle_revoked_token(self, exception, request):
-      if isinstance(exception, (InvalidAccessToken, InvalidOAuthReturnError)):
+      if isinstance(exception, (InvalidAccessToken, InvalidOAuthReturnError, Unauthorized)):
           CanvasOAuth2Token.objects.filter(user=request.user).delete()
           logger.error(f"Deleted the Canvas OAuth2 token for user: {request.user} since they might have revoked access.")
+          raise CanvasAccessTokenException()
   
   def handle_serializer_errors(self, serializer_errors: dict, input: str = None) -> CanvasHTTPError:
       logger.error(f"Serializer error: {serializer_errors} occured during the API call.")

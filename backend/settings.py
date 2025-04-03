@@ -267,6 +267,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'EXCEPTION_HANDLER': 'backend.ccm.canvas_api.serializer_exception.custom_exception_handler',
 }
 
 SPECTACULAR_SETTINGS = {

@@ -1,6 +1,6 @@
 import json
 from typing import Any, List, TypedDict
-
+from rest_framework.exceptions import APIException
 
 class StandardCanvasErrorData(TypedDict):
     message: str
@@ -53,4 +53,21 @@ class CanvasHTTPError(Exception):
         return {
             "statusCode": self.status_code,
             "errors": self.errors
+        }
+    
+class CanvasAccessTokenException(APIException):
+    """
+    Custom exception for Canvas token-related errors.
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        self.message = 'Unauthorized'
+        self.status_code = 401
+        self.redirect = True
+    
+    def to_dict(self) -> dict:
+        return {
+            "message": self.message,
+            "status_code": self.status_code,
+            "redirect": self.redirect
         }
