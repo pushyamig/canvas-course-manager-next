@@ -70,9 +70,10 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
     def put(self, request: Request, course_id: int) -> Response:
         # Validate the incoming data using the serializer.
         serializer = CourseSerializer(data=request.data)
-        if not serializer.is_valid():
-            err_response: CanvasHTTPError = CanvasCredentialManager.handle_serializer_errors(serializer.errors, request.data)
-            return Response(err_response.to_dict(), status=err_response.status_code)
+        serializer.is_valid(raise_exception=True)
+        # if not serializer.is_valid():
+        #     err_response: CanvasHTTPError = CanvasCredentialManager.handle_serializer_errors(serializer.errors, request.data)
+        #     return Response(err_response.to_dict(), status=err_response.status_code)
 
         update_data = serializer.validated_data
         try:
