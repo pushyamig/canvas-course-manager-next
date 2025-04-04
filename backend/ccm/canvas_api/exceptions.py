@@ -6,6 +6,7 @@ from canvasapi.exceptions import (
     ResourceDoesNotExist, Unauthorized, UnprocessableEntity
 )
 from canvas_oauth.exceptions import InvalidOAuthReturnError
+from rest_framework.exceptions import APIException
 
 
 class ErrorData(TypedDict):
@@ -51,6 +52,17 @@ class CanvasHTTPError(Exception):
             "statusCode": (sc.pop() if len(sc := {e["canvasStatusCode"] for e in self.errors}) == 1 else HTTPStatus.INTERNAL_SERVER_ERROR.value),
             "errors": self.errors
         }
+    
+    class CanvasHTTPErrNext(Exception):
+        def __init__(self, message: str, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
+            self.message = message
+            self.status_code = status_code
+            super().__init__(self.message)
+        def to_dict(self) -> dict:
+            return {
+                "message": self.message,
+                "statusCode": self.status_code
+            }
 class HTTPAPIError(Exception):
     """Custom exception to capture failed input along with the error details."""
     def __init__(self, failed_input: str, original_exception: Exception):
@@ -61,3 +73,22 @@ class HTTPAPIError(Exception):
     def to_dict(self):
         """Returns a dictionary representation of the error."""
         return {"failed_input": self.failed_input, "error": self.original_exception}
+    
+class CanvasAccessTokenException(APIException):
+    """
+    Custom exception for Canvas token-related errors.
+    """
+    status_code = 401
+    default_detail = 'Unauthorized'
+    default_code = 'unauthorized'
+
+    def __init__(self, detail=None, code=None):
+        self.redirect = True
+        super().__init__(detail or self.default_detail, code)
+
+    def to_dict(self) -> dict:
+        return {
+            "message": self.detail,
+            "statusCode": self.status_code,
+            "redirect": self.redirect
+        }

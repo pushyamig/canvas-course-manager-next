@@ -13,7 +13,7 @@ from canvasapi.course import Course
 from canvasapi import Canvas
 
 from backend.ccm.canvas_api.canvasapi_serializer import CourseSerializer
-from .exceptions import CanvasHTTPError, HTTPAPIError
+from .exceptions import CanvasAccessTokenException, CanvasHTTPError, HTTPAPIError
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
@@ -70,10 +70,9 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
     def put(self, request: Request, course_id: int) -> Response:
         # Validate the incoming data using the serializer.
         serializer = CourseSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # if not serializer.is_valid():
-        #     err_response: CanvasHTTPError = CanvasCredentialManager.handle_serializer_errors(serializer.errors, request.data)
-        #     return Response(err_response.to_dict(), status=err_response.status_code)
+        if not serializer.is_valid():
+            err_response: CanvasHTTPError = CanvasCredentialManager.handle_serializer_errors(serializer.errors, request.data)
+            return Response(err_response.to_dict(), status=err_response.status_code)
 
         update_data = serializer.validated_data
         try:
@@ -85,5 +84,7 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
             return Response(formatted_course, status=HTTPStatus.OK)
         except (CanvasException, InvalidOAuthReturnError, Exception) as e:
-            err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exception(e, request, str(request.data))
-            return Response(err_response.to_dict(), status=err_response.status_code)
+            raise CanvasAccessTokenException()
+            # httperrot = HTTPAPIError(str(course_id), e).to_dict()
+            # err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(httperrot, request)
+            # return Response(err_response.to_dict(), status=err_response.to_dict().get("statusCode", HTTPStatus.INTERNAL_SERVER_ERROR.value))
