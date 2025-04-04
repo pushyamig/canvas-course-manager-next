@@ -10,6 +10,7 @@ from rest_framework.request import Request
 
 from canvasapi.exceptions import CanvasException
 from canvasapi.course import Course
+from rest_framework.exceptions import APIException
 from canvasapi import Canvas
 
 from backend.ccm.canvas_api.canvasapi_serializer import CourseSerializer
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 CANVAS_CREDENTIALS = CanvasCredentialManager()
 
-class CanvasCourseAPIHandler(LoggingMixin, APIView):
+class CanvasCourseAPIHandler(APIView):
 
     logging_methods = ['GET', 'PUT']
     """
@@ -84,7 +85,7 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
             return Response(formatted_course, status=HTTPStatus.OK)
         except (CanvasException, InvalidOAuthReturnError, Exception) as e:
-            raise CanvasAccessTokenException()
+            raise APIException()
             # httperrot = HTTPAPIError(str(course_id), e).to_dict()
             # err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(httperrot, request)
             # return Response(err_response.to_dict(), status=err_response.to_dict().get("statusCode", HTTPStatus.INTERNAL_SERVER_ERROR.value))
