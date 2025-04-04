@@ -59,15 +59,17 @@ class CanvasAccessTokenException(APIException):
     """
     Custom exception for Canvas token-related errors.
     """
-    def __init__(self) -> None:
-        super().__init__()
-        self.message = 'Unauthorized'
-        self.status_code = 401
+    status_code = 401
+    default_detail = 'Unauthorized'
+    default_code = 'unauthorized'
+
+    def __init__(self, detail=None, code=None):
         self.redirect = True
-    
+        super().__init__(detail or self.default_detail, code)
+
     def to_dict(self) -> dict:
         return {
-            "message": self.message,
-            "status_code": self.status_code,
+            "message": self.detail,
+            "statusCode": self.status_code,
             "redirect": self.redirect
         }
