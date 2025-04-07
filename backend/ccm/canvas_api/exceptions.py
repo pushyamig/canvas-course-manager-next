@@ -1,5 +1,4 @@
 from http import HTTPStatus
-import json
 from typing import Any, List, TypedDict
 from canvasapi.exceptions import (
     BadRequest, Conflict, Forbidden, InvalidAccessToken, RateLimitExceeded,
@@ -51,17 +50,6 @@ class CanvasHTTPError(Exception):
         return {
             "statusCode": (sc.pop() if len(sc := {e["canvasStatusCode"] for e in self.errors}) == 1 else HTTPStatus.INTERNAL_SERVER_ERROR.value),
             "errors": self.errors
-        }
-    
-class CanvasHTTPErrNext(Exception):
-    def __init__(self, message: str, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
-        self.message = message
-        self.status_code = status_code
-        super().__init__(self.message)
-    def to_dict(self) -> dict:
-        return {
-            "message": self.message,
-            "statusCode": self.status_code
         }
 class HTTPAPIError(Exception):
     """Custom exception to capture failed input along with the error details."""

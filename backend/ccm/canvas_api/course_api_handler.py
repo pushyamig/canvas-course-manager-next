@@ -41,10 +41,10 @@ class CanvasCourseAPIHandler(APIView):
         """
         Get course data from Canvas.
         """
-        try:
-            canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
-            logger.info(f"Getting course data for course_id: {course_id}")
+        canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
+        logger.info(f"Getting course data for course_id: {course_id}")
             
+        try:
             # Call the Canvas API package to get course details.
             course: Course = canvas_api.get_course(course_id)
             logger.info(f"Course data retrieved: {course}")
@@ -57,7 +57,7 @@ class CanvasCourseAPIHandler(APIView):
             }
             
             return Response(formatted_course, status=HTTPStatus.OK)
-        except (CanvasException, InvalidOAuthReturnError, Exception) as e:
+        except (CanvasException, Exception) as e:
             httperrot = HTTPAPIError(str(course_id), e).to_dict()
             err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(httperrot, request)
             return Response(err_response.to_dict(), status=err_response.to_dict().get("statusCode", HTTPStatus.INTERNAL_SERVER_ERROR.value))
@@ -76,15 +76,15 @@ class CanvasCourseAPIHandler(APIView):
             return Response(err_response.to_dict(), status=err_response.status_code)
 
         update_data = serializer.validated_data
-        try:
-            canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
+        canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
             # Get the course instance
+        try:
             course: Course = canvas_api.get_course(course_id)
             # Call the update method on the course instance
             put_course_res: str= course.update(course={'name': update_data.get("newName"), 'course_code': update_data.get("newName")})
             formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
             return Response(formatted_course, status=HTTPStatus.OK)
-        except (CanvasException, InvalidOAuthReturnError, Exception) as e:
+        except (CanvasException, Exception) as e:
             httperrot = HTTPAPIError(str(course_id), e).to_dict()
             err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(httperrot, request)
             return Response(err_response.to_dict(), status=err_response.to_dict().get("statusCode", HTTPStatus.INTERNAL_SERVER_ERROR.value))

@@ -41,7 +41,7 @@ class CanvasCredentialManager:
     except InvalidOAuthReturnError as e:
       # This issue occurred during non-prod Canvas sync when the API key was deleted, but the token remained in CCM databases. Expired token will trigger the usecase.
       logger.error(f"InvalidOAuthReturnError for user: {request.user}. Remove invalid refresh_token and prompt for reauthentication.")
-      raise InvalidOAuthReturnError(str(e))
+      raise CanvasAccessTokenException()
     return Canvas(self.canvasURL, access_token)
   
   def handle_canvas_api_exceptions(self, exceptions: Union[HTTPAPIError, List[HTTPAPIError]], request: Request) -> CanvasHTTPError:
@@ -49,18 +49,13 @@ class CanvasCredentialManager:
     exceptions = exceptions if isinstance(exceptions, list) else [exceptions]
     error_exceptions = [entry["error"] for entry in exceptions]
 
-    if any(isinstance(exc, (InvalidAccessToken, InvalidOAuthReturnError, Unauthorized)) for exc in error_exceptions):
-      CanvasOAuth2Token.objects.filter(user=request.user).delete()
-      logger.error(f"Deleted the Canvas OAuth2 token for user: {request.user} since they might have revoked access.")
+    if any(isinstance(exc, (InvalidAccessToken, Unauthorized)) for exc in error_exceptions):
       raise CanvasAccessTokenException()
     
-    # self.handle_invalid_token(error_exceptions, request)
     return CanvasHTTPError(exceptions)
-    # return self.handle_err_response_2(exceptions)
   
   def handle_invalid_token(self, exceptions: List[Exception], request: Request):
      if any(isinstance(exc, (InvalidAccessToken, InvalidOAuthReturnError, Unauthorized)) for exc in exceptions):
-        # CanvasOAuth2Token.objects.filter(user=request.user).delete()
         logger.error(f"Deleted the Canvas OAuth2 token for user: {request.user} since they might have revoked access.")
         raise CanvasAccessTokenException()
   

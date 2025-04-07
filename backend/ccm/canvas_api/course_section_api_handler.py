@@ -46,12 +46,8 @@ class CanvasCourseSectionsAPIHandler(LoggingMixin, APIView):
         a = 'AlexanderMaximilianTheodoreBartholomewChristopherNathanielMontgomeryFitzgeraldBenjaminWellingtonSebastianJonathanAugustusDominicReginaldCorneliusHarrisonMaxwellNicholasFranklinFrederickEmmanuelLeopoldTheophilusAmbroseGideonValentinePeregrineBalthazarOctaviusCassiusSeraphimThaddeusArchibaldIgnatiusSylvesterAlistairDemetriusLysanderPhineasQuintilianEzekielZacharias'
         sections = ['u1', a, 'u3','']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
-        # try:
         canvas_api: Canvas = CANVAS_CREDENTIALS.get_canvasapi_instance(request)
-        # except InvalidOAuthReturnError as e:
-        #   raise CanvasAccessTokenException()
            
-        
         start_time: float = time.perf_counter()
         results = asyncio.run(self.create_sections(canvas_api, course_id, sections))
         logger.info(f"Sections created: {results}")
