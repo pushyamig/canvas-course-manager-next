@@ -23,20 +23,3 @@ def parse_csp(csp_key: str, extra_csp_sources: Optional[List[str]] = None) -> Li
         else:
             return DEFAULT_CSP_VALUE + csp_value 
 
-from rest_framework.views import exception_handler
-
-
-# https://www.django-rest-framework.org/api-guide/exceptions/#custom-exception-handling
-def custom_exception_handler(exc, context):
-    response = exception_handler(exc, context)
-    if isinstance(exc, APIException):
-        return Response(
-            {
-                "message": str(exc),
-                "status_code": exc.status_code if hasattr(exc, 'status_code') else HTTPStatus.INTERNAL_SERVER_ERROR,
-                "redirect": True
-            },
-            status=exc.status_code if hasattr(exc, 'status_code') else HTTPStatus.INTERNAL_SERVER_ERROR
-        )
-
-    return response

@@ -50,7 +50,7 @@ class CanvasCredentialManager:
     error_exceptions = [entry["error"] for entry in exceptions]
 
     if any(isinstance(exc, (InvalidAccessToken, InvalidOAuthReturnError, Unauthorized)) for exc in error_exceptions):
-      # CanvasOAuth2Token.objects.filter(user=request.user).delete()
+      CanvasOAuth2Token.objects.filter(user=request.user).delete()
       logger.error(f"Deleted the Canvas OAuth2 token for user: {request.user} since they might have revoked access.")
       raise CanvasAccessTokenException()
     

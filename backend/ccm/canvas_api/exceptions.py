@@ -53,16 +53,16 @@ class CanvasHTTPError(Exception):
             "errors": self.errors
         }
     
-    class CanvasHTTPErrNext(Exception):
-        def __init__(self, message: str, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
-            self.message = message
-            self.status_code = status_code
-            super().__init__(self.message)
-        def to_dict(self) -> dict:
-            return {
-                "message": self.message,
-                "statusCode": self.status_code
-            }
+class CanvasHTTPErrNext(Exception):
+    def __init__(self, message: str, status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value):
+        self.message = message
+        self.status_code = status_code
+        super().__init__(self.message)
+    def to_dict(self) -> dict:
+        return {
+            "message": self.message,
+            "statusCode": self.status_code
+        }
 class HTTPAPIError(Exception):
     """Custom exception to capture failed input along with the error details."""
     def __init__(self, failed_input: str, original_exception: Exception):

@@ -85,7 +85,6 @@ class CanvasCourseAPIHandler(APIView):
             formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
             return Response(formatted_course, status=HTTPStatus.OK)
         except (CanvasException, InvalidOAuthReturnError, Exception) as e:
-            raise APIException()
-            # httperrot = HTTPAPIError(str(course_id), e).to_dict()
-            # err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(httperrot, request)
-            # return Response(err_response.to_dict(), status=err_response.to_dict().get("statusCode", HTTPStatus.INTERNAL_SERVER_ERROR.value))
+            httperrot = HTTPAPIError(str(course_id), e).to_dict()
+            err_response: CanvasHTTPError = CANVAS_CREDENTIALS.handle_canvas_api_exceptions(httperrot, request)
+            return Response(err_response.to_dict(), status=err_response.to_dict().get("statusCode", HTTPStatus.INTERNAL_SERVER_ERROR.value))
