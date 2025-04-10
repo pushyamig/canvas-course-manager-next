@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from http import HTTPStatus
 from typing import List, TypedDict, Union, Dict
 from canvasapi.exceptions import (
@@ -7,12 +8,12 @@ from canvasapi.exceptions import (
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 from rest_framework.exceptions import APIException
 
-
-class ErrorData(TypedDict):
+@dataclass
+class ErrorData():
     failed_input: str
     exeption: Exception
-
-class SerializerError(TypedDict):
+@dataclass
+class SerializerError():
     failed_input: str
     serializer_error: dict
     
@@ -38,7 +39,7 @@ class CanvasHTTPError():
         InvalidOAuthReturnError: HTTPStatus.FORBIDDEN.value
     }
 
-    def __init__(self, error_data: Union[List[ErrorData], Dict[str, SerializerError]]) -> None:
+    def __init__(self, error_data: Union[List[ErrorData], SerializerError]) -> None:
         self.errors = []
         if isinstance(error_data, list):
             for error in error_data:

@@ -63,6 +63,7 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
     )
     def put(self, request: Request, course_id: int) -> Response:
         logger.info(f"Updating course name: {course_id}")
+        course_id = 223444444444444444
 
         serializer: Serializer = CourseSerializer(data=request.data)
         if not serializer.is_valid():
