@@ -25,6 +25,7 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
     logging_methods = ['GET', 'POST']
     authentication_classes = [authentication.SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
+    course_section_allowed_fields = {"course_id", "id", "name", "nonxlist_course_id", "total_students"}
 
     def __init__(self, credential_manager=None):
         self.credential_manager = credential_manager or CanvasCredentialManager()
@@ -41,14 +42,14 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             logger.info(f"Retrieving course for section data with course_id: {course_id}")
             # Get list of sections, including total_students info
             sections = canvas_api.get_course(course_id).get_sections(include=['total_students'], per_page=per_page)
-            allowed_fields = {"course_id", "id", "name", "nonxlist_course_id", "total_students"}
-            serializer = CanvasObjectROSerializer(sections, allowed_fields=allowed_fields, many=True)
-            logger.info(f"Section data retrieved with filtered fields: {allowed_fields}")
+            
+            serializer = CanvasObjectROSerializer(sections, allowed_fields=self.course_section_allowed_fields, many=True)
+            logger.info(f"Section data retrieved with filtered fields: {self.course_section_allowed_fields}")
             logger.debug(f"Section data in response: {serializer.data}")
 
             return Response(serializer.data, status=HTTPStatus.OK)
         except (CanvasException, Exception) as e:
-            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(course_id, e).to_dict())
+            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
     
     @extend_schema(
@@ -64,6 +65,8 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         
         sections: list = serializer.validated_data['sections']
+        # a = 'AlexanderMaximilianTheodoreBartholomewChristopherNathanielMontgomeryFitzgeraldBenjaminWellingtonSebastianJonathanAugustusDominicReginaldCorneliusHarrisonMaxwellNicholasFranklinFrederickEmmanuelLeopoldTheophilusAmbroseGideonValentinePeregrineBalthazarOctaviusCassiusSeraphimThaddeusArchibaldIgnatiusSylvesterAlistairDemetriusLysanderPhineasQuintilianEzekielZacharias'
+        # sections = ['u1', a, 'u3', '']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
            
@@ -75,15 +78,15 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
 
         # Filter success and error responses
         success_res = [result for result in results if isinstance(result, dict)]
-        error_res = [res.to_dict() for res in results if isinstance(res, HTTPAPIError)]
+        err_res = [res for res in results if isinstance(res, HTTPAPIError)]
 
         logger.info(f"Success: {success_res}")
-        logger.info(f"Errors: {error_res}")
-        if not error_res:
+        logger.info(f"Errors: {err_res}")
+        if not err_res:
             return Response(success_res, status=HTTPStatus.CREATED)
         
         # Handle errors
-        err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(error_res)
+        err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(err_res)
         return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         
     async def create_sections(self, canvas_api, course_id, section_names):
@@ -96,10 +99,9 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         try:
             logger.info(f"Creating section: {section_name} for course_id: {course_id} at {time.strftime('%H:%M:%S')}")
             section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
-            allowed_fields = {"course_id", "id", "name", "nonxlist_course_id", "total_students"}
             
             # Serialize the section and add total_students manually
-            serializer = CanvasObjectROSerializer(section, allowed_fields=allowed_fields)
+            serializer = CanvasObjectROSerializer(section, allowed_fields=self.course_section_allowed_fields)
             serialized_data = serializer.data
             serialized_data["total_students"] = 0  # Default value for total_students
             return serialized_data

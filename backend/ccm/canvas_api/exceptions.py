@@ -17,6 +17,17 @@ class SerializerError():
     failed_input: str
     serializer_error: dict
     
+class HTTPAPIError(Exception):
+    """Custom exception to capture failed input along with the error details."""
+    def __init__(self, failed_input: str, original_exception: Exception):
+        self.failed_input = failed_input
+        self.original_exception = original_exception
+        super().__init__(f"Exception due failed input '{failed_input}': {original_exception}")
+
+    def to_dict(self):
+        """Returns a dictionary representation of the error."""
+        return {"failed_input": self.failed_input, "error": self.original_exception}
+
 class CanvasHTTPError():
     """
     Custom exception for HTTP errors originating from Canvas API interactions
@@ -39,15 +50,14 @@ class CanvasHTTPError():
         InvalidOAuthReturnError: HTTPStatus.FORBIDDEN.value
     }
 
-    def __init__(self, error_data: Union[List[ErrorData], SerializerError]) -> None:
+    def __init__(self, error_data: Union[List[HTTPAPIError], SerializerError]) -> None:
         self.errors = []
-        if isinstance(error_data, list):
+        if isinstance(error_data, list) and all(isinstance(error, HTTPAPIError) for error in error_data):
             for error in error_data:
-                # Directly handle ErrorData objects
                 self.errors.append({
-                    "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error['error']), HTTPStatus.INTERNAL_SERVER_ERROR.value),
-                    "message": str(error['error']),
-                    "failedInput": error['failed_input']
+                    "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error.original_exception), HTTPStatus.INTERNAL_SERVER_ERROR.value),
+                    "message": str(error.original_exception),
+                    "failedInput": error.failed_input
                 })
         elif isinstance(error_data, SerializerError):
             self.errors.append({

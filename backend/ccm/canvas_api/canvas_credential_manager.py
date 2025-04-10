@@ -36,11 +36,11 @@ class CanvasCredentialManager:
   def handle_canvas_api_exceptions(self, exceptions: Union[HTTPAPIError, List[HTTPAPIError]]) -> CanvasHTTPError:
     logger.error(f"API error occurred: {exceptions}")
     exceptions = exceptions if isinstance(exceptions, list) else [exceptions]
-    error_exceptions = [entry["error"] for entry in exceptions]
     
-    if any(isinstance(exc, (InvalidAccessToken, Unauthorized)) for exc in error_exceptions):
-      # Invalid access token occures when a user revokes Canvas Authorization from Canvas Profile settings.
-      # Unauthorized happens when you add more API scopes but the User Authorization is still limited to eariler API scopes.
-      raise CanvasAccessTokenException()
+    # Check for token-related errors
+    if any(isinstance(exc.original_exception, (InvalidAccessToken, Unauthorized)) for exc in exceptions):
+        # Invalid access token occurs when a user revokes Canvas Authorization from Canvas Profile settings.
+        # Unauthorized happens when you add more API scopes but the User Authorization is still limited to earlier API scopes.
+        raise CanvasAccessTokenException()
     
     return CanvasHTTPError(exceptions)

@@ -52,7 +52,7 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(serializer.data, status=HTTPStatus.OK)
         
         except (CanvasException, Exception) as e:
-            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e).to_dict())
+            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
       
     @extend_schema(
@@ -80,5 +80,5 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(formatted_course, status=HTTPStatus.OK)
         
         except (CanvasException, Exception) as e:
-            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e).to_dict())
+            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
