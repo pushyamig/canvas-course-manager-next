@@ -9,10 +9,6 @@ from canvas_oauth.exceptions import InvalidOAuthReturnError
 from rest_framework.exceptions import APIException
 
 @dataclass
-class ErrorData():
-    failed_input: str
-    exeption: Exception
-@dataclass
 class SerializerError():
     failed_input: str
     serializer_error: dict

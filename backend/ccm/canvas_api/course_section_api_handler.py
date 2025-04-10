@@ -80,8 +80,8 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         success_res = [result for result in results if isinstance(result, dict)]
         err_res = [res for res in results if isinstance(res, HTTPAPIError)]
 
-        logger.info(f"Success: {success_res}")
-        logger.info(f"Errors: {err_res}")
+        logger.info(f"{len(success_res)}/{len(sections)} sections successfully created")
+        logger.debug(f"Errors while creating the section: {err_res}")
         if not err_res:
             return Response(success_res, status=HTTPStatus.CREATED)
         
