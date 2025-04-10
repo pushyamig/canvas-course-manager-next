@@ -28,8 +28,9 @@ class CanvasCredentialManager:
   
   def handle_serializer_errors(self, serializer_errors: dict, input: str) -> CanvasHTTPError:
       logger.error(f"Serializer error: {serializer_errors} occured during the API call.")
-      # err_response: CanvasHTTPError = CanvasHTTPError(SerializerError(failed_input=str(input), serializer_error=serializer_errors))
-      err_response: CanvasHTTPError = CanvasHTTPError({'failed_input':str(input), 'serializer_error':serializer_errors})
+      # Create a SerializerError instance and pass it to CanvasHTTPError
+      serializer_error_instance = SerializerError(failed_input=str(input), serializer_error=serializer_errors)
+      err_response: CanvasHTTPError = CanvasHTTPError(serializer_error_instance)
       return err_response
   
   def handle_canvas_api_exceptions(self, exceptions: Union[HTTPAPIError, List[HTTPAPIError]]) -> CanvasHTTPError:

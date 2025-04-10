@@ -43,17 +43,17 @@ class CanvasHTTPError():
         self.errors = []
         if isinstance(error_data, list):
             for error in error_data:
+                # Directly handle ErrorData objects
                 self.errors.append({
                     "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error['error']), HTTPStatus.INTERNAL_SERVER_ERROR.value),
                     "message": str(error['error']),
                     "failedInput": error['failed_input']
                 })
-
-        elif isinstance(error_data, dict):
+        elif isinstance(error_data, SerializerError):
             self.errors.append({
                 "canvasStatusCode": HTTPStatus.INTERNAL_SERVER_ERROR.value,
-                "message": str(error_data['serializer_error']),
-                "failedInput": error_data['failed_input']
+                "message": str(error_data.serializer_error),
+                "failedInput": error_data.failed_input
             })
 
     def __str__(self) -> str:

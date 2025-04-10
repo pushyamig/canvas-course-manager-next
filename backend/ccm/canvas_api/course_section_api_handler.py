@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import logging, asyncio, time
 from http import HTTPStatus
 from backend.ccm.canvas_api.canvasapi_serializer import CanvasObjectROSerializer, CourseSectionSerializer
@@ -6,14 +5,12 @@ from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from rest_framework.response import Response
 from rest_framework.request import Request
-from dataclasses import asdict
 
 from canvasapi.exceptions import CanvasException
 from canvasapi import Canvas
 from drf_spectacular.utils import extend_schema
 
 from .exceptions import CanvasHTTPError, HTTPAPIError
-from canvas_oauth.exceptions import InvalidOAuthReturnError
 
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
 
@@ -67,8 +64,6 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         
         sections: list = serializer.validated_data['sections']
-        # a = 'AlexanderMaximilianTheodoreBartholomewChristopherNathanielMontgomeryFitzgeraldBenjaminWellingtonSebastianJonathanAugustusDominicReginaldCorneliusHarrisonMaxwellNicholasFranklinFrederickEmmanuelLeopoldTheophilusAmbroseGideonValentinePeregrineBalthazarOctaviusCassiusSeraphimThaddeusArchibaldIgnatiusSylvesterAlistairDemetriusLysanderPhineasQuintilianEzekielZacharias'
-        # sections = ['u1', a, 'u3','']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
            
@@ -107,9 +102,8 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             serializer = CanvasObjectROSerializer(section, allowed_fields=allowed_fields)
             serialized_data = serializer.data
             serialized_data["total_students"] = 0  # Default value for total_students
-            
-            logger.info(f"Section created: {serialized_data}")
             return serialized_data
+        
         except (CanvasException, Exception) as e:
             raise HTTPAPIError(section_name, e)
 

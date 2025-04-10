@@ -63,7 +63,6 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
     )
     def put(self, request: Request, course_id: int) -> Response:
         logger.info(f"Updating course name: {course_id}")
-        course_id = 223444444444444444
 
         serializer: Serializer = CourseSerializer(data=request.data)
         if not serializer.is_valid():
@@ -71,8 +70,8 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         update_data = serializer.validated_data
         
+        canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
         try:
-            canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
             # Get the course instance
             course: Course = canvas_api.get_course(course_id)
             # Call the update method on the course instance
