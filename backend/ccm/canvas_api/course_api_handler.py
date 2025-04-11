@@ -75,9 +75,11 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             # Get the course instance
             course: Course = canvas_api.get_course(course_id)
             # Call the update method on the course instance
-            put_course_res: str= course.update(course={'name': update_data.get("newName"), 'course_code': update_data.get("newName")})
-            formatted_course = {'id': course.id, 'name': put_course_res, 'enrollment_term_id': course.enrollment_term_id }
-            return Response(formatted_course, status=HTTPStatus.OK)
+            course_name_update_res: str= course.update(course={'name': update_data.get("newName"), 'course_code': update_data.get("newName")})
+            serializer = CanvasObjectROSerializer(course, allowed_fields=self.course_allowed_fields)
+            serialized_data = serializer.data
+            serialized_data["name"] = course_name_update_res 
+            return Response(serialized_data, status=HTTPStatus.OK)
         
         except (CanvasException, Exception) as e:
             err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
