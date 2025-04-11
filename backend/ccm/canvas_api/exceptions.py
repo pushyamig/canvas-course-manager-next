@@ -18,9 +18,8 @@ class HTTPAPIError(Exception):
     def __init__(self, failed_input: str, original_exception: Exception):
         self.failed_input = failed_input
         self.original_exception = original_exception
-        super().__init__(f"Exception due failed input '{failed_input}': {original_exception}")
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """Returns a dictionary representation of the error."""
         return {"failed_input": self.failed_input, "error": self.original_exception}
 
@@ -61,6 +60,12 @@ class CanvasHTTPError():
                 "message": str(error_data.serializer_error),
                 "failedInput": error_data.failed_input
             })
+        else:
+            self.errors.append({
+                "canvasStatusCode": HTTPStatus.BAD_REQUEST.value,
+                "message": error_data,
+                "failedInput": None
+            })
 
     def __str__(self) -> str:
         return f'Errors: {self.errors}'
@@ -70,16 +75,6 @@ class CanvasHTTPError():
             "statusCode": (sc.pop() if len(sc := {e["canvasStatusCode"] for e in self.errors}) == 1 else HTTPStatus.INTERNAL_SERVER_ERROR.value),
             "errors": self.errors
         }
-class HTTPAPIError(Exception):
-    """Custom exception to capture failed input along with the error details."""
-    def __init__(self, failed_input: str, original_exception: Exception):
-        self.failed_input = failed_input
-        self.original_exception = original_exception
-        super().__init__(f"Exception due failed input '{failed_input}': {original_exception}")
-
-    def to_dict(self):
-        """Returns a dictionary representation of the error."""
-        return {"failed_input": self.failed_input, "error": self.original_exception}
     
 class CanvasAccessTokenException(APIException):
     """

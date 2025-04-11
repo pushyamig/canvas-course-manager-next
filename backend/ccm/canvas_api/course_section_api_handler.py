@@ -26,6 +26,7 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
     authentication_classes = [authentication.SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     course_section_allowed_fields = {"course_id", "id", "name", "nonxlist_course_id", "total_students"}
+    serializer_class = CourseSectionSerializer  # Ensures Swagger UI recognizes it
 
     def __init__(self, credential_manager=None):
         self.credential_manager = credential_manager or CanvasCredentialManager()
@@ -82,6 +83,7 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
 
         logger.info(f"{len(success_res)}/{len(sections)} sections successfully created")
         logger.debug(f"Errors while creating the section: {err_res}")
+        
         if not err_res:
             return Response(success_res, status=HTTPStatus.CREATED)
         
