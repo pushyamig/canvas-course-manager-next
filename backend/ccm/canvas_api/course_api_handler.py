@@ -21,8 +21,6 @@ from rest_framework_tracking.mixins import LoggingMixin
 
 logger = logging.getLogger(__name__)
 
-# CANVAS_CREDENTIALS = CanvasCredentialManager()
-
 class CanvasCourseAPIHandler(LoggingMixin, APIView):
 
     logging_methods = ['GET', 'PUT']
