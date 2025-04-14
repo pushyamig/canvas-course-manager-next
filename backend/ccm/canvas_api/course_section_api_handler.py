@@ -66,14 +66,11 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
         
         sections: list = serializer.validated_data['sections']
-        # a = 'AlexanderMaximilianTheodoreBartholomewChristopherNathanielMontgomeryFitzgeraldBenjaminWellingtonSebastianJonathanAugustusDominicReginaldCorneliusHarrisonMaxwellNicholasFranklinFrederickEmmanuelLeopoldTheophilusAmbroseGideonValentinePeregrineBalthazarOctaviusCassiusSeraphimThaddeusArchibaldIgnatiusSylvesterAlistairDemetriusLysanderPhineasQuintilianEzekielZacharias'
-        # sections = ['u1', a, 'u3', '']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
            
         start_time: float = time.perf_counter()
         results = asyncio.run(self.create_sections(canvas_api, course_id, sections))
-        logger.info(f"Sections created: {results}")
         end_time: float = time.perf_counter()
         logger.info(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
 
