@@ -1,6 +1,7 @@
+import logging
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import List, TypedDict, Union, Dict
+from typing import List, Union
 from canvasapi.exceptions import (
     BadRequest, Conflict, Forbidden, InvalidAccessToken, RateLimitExceeded,
     ResourceDoesNotExist, Unauthorized, UnprocessableEntity
@@ -8,11 +9,8 @@ from canvasapi.exceptions import (
 from canvas_oauth.exceptions import InvalidOAuthReturnError
 from rest_framework.exceptions import APIException
 
-@dataclass
-class SerializerError():
-    failed_input: str
-    serializer_error: dict
-    
+logger = logging.getLogger(__name__)
+
 class HTTPAPIError(Exception):
     """Custom exception to capture failed input along with the error details."""
     def __init__(self, failed_input: str, original_exception: Exception):
@@ -23,16 +21,13 @@ class HTTPAPIError(Exception):
         """Returns a dictionary representation of the error."""
         return {"failed_input": self.failed_input, "error": self.original_exception}
 
-class CanvasHTTPError():
+class CanvasErrorHandler():
     """
     Custom exception for HTTP errors originating from Canvas API interactions
     """
 
     canvas_error_prefix = 'An error occurred during Canvas API steps. '
 
-    message: str
-    status_code: int
-    errors: List[dict]
     EXCEPTION_STATUS_MAP = {
         BadRequest: HTTPStatus.BAD_REQUEST.value,
         InvalidAccessToken: HTTPStatus.UNAUTHORIZED.value,
@@ -45,30 +40,37 @@ class CanvasHTTPError():
         InvalidOAuthReturnError: HTTPStatus.FORBIDDEN.value
     }
 
-    def __init__(self, error_data: Union[List[HTTPAPIError], SerializerError]) -> None:
+    def __init__(self) -> None:
         self.errors = []
-        if isinstance(error_data, list) and all(isinstance(error, HTTPAPIError) for error in error_data):
-            for error in error_data:
+
+    def __str__(self) -> str:
+        return f'Errors: {self.errors}'
+    
+    def handle_serializer_errors(self, serializer_errors: dict, input: str):
+      logger.error(f"Serializer error: {serializer_errors} occured during the API call.")
+      # Create a SerializerError instance and pass it to CanvasHTTPError
+      self.errors.append({
+                "canvasStatusCode": HTTPStatus.INTERNAL_SERVER_ERROR.value,
+                "message": str(serializer_errors),
+                "failedInput": input
+            })
+    
+    def handle_canvas_api_exceptions(self, exceptions: Union[HTTPAPIError, List[HTTPAPIError]]):
+        logger.error(f"API error occurred: {exceptions}")
+        exceptions = exceptions if isinstance(exceptions, list) else [exceptions]
+        
+        # Check for token-related errors
+        if any(isinstance(exc.original_exception, (InvalidAccessToken, Unauthorized)) for exc in exceptions):
+            # Invalid access token occurs when a user revokes Canvas Authorization from Canvas Profile settings.
+            # Unauthorized happens when you add more API scopes but the User Authorization is still limited to earlier API scopes.
+            raise CanvasAccessTokenException()
+        if all(isinstance(error, HTTPAPIError) for error in exceptions):
+            for error in exceptions:
                 self.errors.append({
                     "canvasStatusCode": self.EXCEPTION_STATUS_MAP.get(type(error.original_exception), HTTPStatus.INTERNAL_SERVER_ERROR.value),
                     "message": str(error.original_exception),
                     "failedInput": error.failed_input
                 })
-        elif isinstance(error_data, SerializerError):
-            self.errors.append({
-                "canvasStatusCode": HTTPStatus.INTERNAL_SERVER_ERROR.value,
-                "message": str(error_data.serializer_error),
-                "failedInput": error_data.failed_input
-            })
-        else:
-            self.errors.append({
-                "canvasStatusCode": HTTPStatus.BAD_REQUEST.value,
-                "message": error_data,
-                "failedInput": None
-            })
-
-    def __str__(self) -> str:
-        return f'Errors: {self.errors}'
 
     def to_dict(self) -> dict:
         return {

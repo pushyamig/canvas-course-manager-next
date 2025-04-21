@@ -10,7 +10,7 @@ from canvasapi.exceptions import CanvasException
 from canvasapi import Canvas
 from drf_spectacular.utils import extend_schema
 
-from .exceptions import CanvasHTTPError, HTTPAPIError
+from .exceptions import CanvasErrorHandler, HTTPAPIError
 
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
 
@@ -30,6 +30,7 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
 
     def __init__(self, credential_manager=None):
         self.credential_manager = credential_manager or CanvasCredentialManager()
+        self.canvas_error = CanvasErrorHandler()
         super().__init__()
 
     def get(self, request: Request, course_id: int, per_page: int = 100) -> Response:
@@ -50,8 +51,8 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
 
             return Response(serializer.data, status=HTTPStatus.OK)
         except (CanvasException, Exception) as e:
-            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
-            return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
+            self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
+            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
     
     @extend_schema(
         operation_id="create_course_sections",
@@ -62,8 +63,8 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
     def post(self, request: Request, course_id: int) -> Response:
         serializer: CourseSectionSerializer = CourseSectionSerializer(data=request.data)
         if not serializer.is_valid():
-            err_response: CanvasHTTPError = self.credential_manager.handle_serializer_errors(serializer.errors, request.data)
-            return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
+            self.canvas_error.handle_serializer_errors(serializer.errors, str(request.data))
+            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
         
         sections: list = serializer.validated_data['sections']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
@@ -85,8 +86,8 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             return Response(success_res, status=HTTPStatus.CREATED)
         
         # Handle errors
-        err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(err_res)
-        return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
+        self.canvas_error.handle_canvas_api_exceptions(err_res)
+        return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
         
     async def create_sections(self, canvas_api, course_id, section_names):
         """Creates multiple sections concurrently."""

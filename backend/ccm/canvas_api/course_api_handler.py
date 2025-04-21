@@ -11,7 +11,7 @@ from canvasapi import Canvas
 from rest_framework.serializers import Serializer
 
 from backend.ccm.canvas_api.canvasapi_serializer import CanvasObjectROSerializer, CourseSerializer
-from .exceptions import CanvasHTTPError, HTTPAPIError
+from .exceptions import CanvasErrorHandler, HTTPAPIError
 
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
 
@@ -34,6 +34,9 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
 
     def __init__(self, credential_manager=None):
         self.credential_manager = credential_manager or CanvasCredentialManager()
+        self.canvas_error = CanvasErrorHandler()
+        logger.info(f"self.canvas_error: {self.canvas_error}")
+        # Initialize the CanvasErrorHandler
         super().__init__()
 
     def get(self, request: Request, course_id: int) -> Response:
@@ -50,8 +53,8 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(serializer.data, status=HTTPStatus.OK)
         
         except (CanvasException, Exception) as e:
-            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
-            return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
+            self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
+            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
       
     @extend_schema(
         operation_id="update_course",
@@ -64,9 +67,10 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
 
         serializer: Serializer = CourseSerializer(data=request.data)
         if not serializer.is_valid():
-            err_response: CanvasHTTPError = self.credential_manager.handle_serializer_errors(serializer.errors, request.data)
-            return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
+            self.canvas_error.handle_serializer_errors(serializer.errors, str(request.data))
+            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
         update_data = serializer.validated_data
+
         
         canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
         try:
@@ -80,5 +84,5 @@ class CanvasCourseAPIHandler(LoggingMixin, APIView):
             return Response(serialized_data, status=HTTPStatus.OK)
         
         except (CanvasException, Exception) as e:
-            err_response: CanvasHTTPError = self.credential_manager.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
-            return Response(err_response.to_dict(), status=err_response.to_dict().get('statusCode'))
+            self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(request.data), e))
+            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))

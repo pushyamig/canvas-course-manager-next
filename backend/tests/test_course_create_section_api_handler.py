@@ -6,12 +6,14 @@ from rest_framework.test import APIRequestFactory
 
 from backend.ccm.canvas_api.course_section_api_handler import CourseSectionAPIHandler
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
+from backend.ccm.canvas_api.exceptions import CanvasErrorHandler
 
 
 class TestCourseSectionAPIHandler(unittest.TestCase):
     def setUp(self):
         self.factory = APIRequestFactory()
         self.credential_manager = MagicMock(spec=CanvasCredentialManager)
+        self.mock_canvas_error_handler = MagicMock(spec=CanvasErrorHandler)
         self.api_handler = CourseSectionAPIHandler(credential_manager=self.credential_manager)
         
         # Mock Canvas API instance
@@ -138,10 +140,10 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
         
         # Mock the error response
         mock_error_response = {
-            'statusCode': HTTPStatus.BAD_REQUEST,
+            'statusCode': HTTPStatus.INTERNAL_SERVER_ERROR,
             'message': "The list cannot be more than 60 items."
         }
-        self.credential_manager.handle_serializer_errors.return_value = MagicMock(
+        self.mock_canvas_error_handler.handle_serializer_errors.return_value = MagicMock(
             to_dict=MagicMock(return_value=mock_error_response)
         )
         
@@ -149,5 +151,5 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
         response = self.api_handler.post(request, self.course_id)
         
         # Verify response
-        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
         self.assertIn("The list cannot be more than 60 items", str(response.data))

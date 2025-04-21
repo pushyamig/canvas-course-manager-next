@@ -115,7 +115,7 @@ class CanvasCourseAPIHandlerTests(APITestCase):
                 {
                     "canvasStatusCode": 404,
                     "message": "Course update failed",
-                    "failedInput": str(self.course_id)  # Use course_id as failedInput
+                    "failedInput": str(data)  # Use course_id as failedInput
                 }
             ]
         }
