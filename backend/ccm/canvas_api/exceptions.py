@@ -44,9 +44,6 @@ class CanvasErrorHandler():
 
     def __init__(self) -> None:
         self.errors = []
-
-    def __str__(self) -> str:
-        return f'Errors: {self.errors}'
     
     def handle_serializer_errors(self, serializer_errors: dict, input: str):
       logger.error(f"Serializer error: {serializer_errors} occured during the API call.")
@@ -61,11 +58,6 @@ class CanvasErrorHandler():
         logger.error(f"API error occurred: {exceptions}")
         exceptions = exceptions if isinstance(exceptions, list) else [exceptions]
         
-        # Check for token-related errors
-        # if any(isinstance(exc.original_exception, (InvalidAccessToken, Unauthorized)) for exc in exceptions):
-        #     # Invalid access token occurs when a user revokes Canvas Authorization from Canvas Profile settings.
-        #     # Unauthorized happens when you add more API scopes but the User Authorization is still limited to earlier API scopes.
-        #     raise CanvasAccessTokenException()
         
         # Handle access token-related issues
         for exc in exceptions:

@@ -101,9 +101,9 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
             section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
             
             # Serialize the section and add total_students manually
-            serializer = CanvasObjectROSerializer(section, allowed_fields=self.course_section_allowed_fields)
+            append_fields = {"total_students": 0}  # Default value for total_students
+            serializer = CanvasObjectROSerializer(section, allowed_fields=self.course_section_allowed_fields, append_fields=append_fields)
             serialized_data = serializer.data
-            serialized_data["total_students"] = 0  # Default value for total_students
             return serialized_data
         
         except (CanvasException, Exception) as e:
@@ -114,4 +114,4 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         try:
             return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
         except Exception as e:
-          return e if isinstance(e, HTTPAPIError) else HTTPAPIError(section_name, e)
+            return e if isinstance(e, HTTPAPIError) else HTTPAPIError(section_name, e)

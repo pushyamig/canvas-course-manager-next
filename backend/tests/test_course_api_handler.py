@@ -61,7 +61,7 @@ class CanvasCourseAPIHandlerTests(APITestCase):
         mock_canvas = mock_get_canvasapi_instance.return_value
         mock_course = Course(mock_canvas._Canvas__requester, {'id': self.course_id, 'name': 'Old Course Name', 'enrollment_term_id': 1, 'course_code': 'Old Course Name'})
         mock_canvas.get_course.return_value = mock_course
-        mock_course.update = lambda course: 'New Course Name'
+        mock_course.update = lambda course: mock_course.__dict__.update(course) or mock_course.name
 
         data = {'newName': 'New Course Name'}
         response = self.client.put(self.url, data, format='json')

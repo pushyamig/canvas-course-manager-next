@@ -20,9 +20,10 @@ class CanvasObjectROSerializer(serializers.BaseSerializer):
     Adapted from the Django REST Framework documentation:
     https://www.django-rest-framework.org/api-guide/serializers/#creating-new-base-classes
     """
-    def __init__(self, *args, allowed_fields=None, **kwargs):
-      super().__init__(*args, **kwargs)
-      self.allowed_fields = allowed_fields
+    def __init__(self, *args, allowed_fields=None, append_fields=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.allowed_fields = allowed_fields
+        self.append_fields = append_fields
 
     def convert_to_primitives(self, instance):
         data = {}
@@ -54,4 +55,11 @@ class CanvasObjectROSerializer(serializers.BaseSerializer):
         # Filter out fields not in allowed_fields
         if self.allowed_fields:
             data = {key: value for key, value in data.items() if key in self.allowed_fields}
+        
+        # Append fields from append_fields if provided
+        if self.append_fields:
+            for key, value in self.append_fields.items():
+                if key not in data:
+                    data[key] = value
+        
         return data
