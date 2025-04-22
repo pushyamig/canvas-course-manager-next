@@ -40,6 +40,8 @@ class CanvasErrorHandler():
         InvalidOAuthReturnError: HTTPStatus.FORBIDDEN.value
     }
 
+    INSUFFICIENT_SCOPES_TEXT = 'insufficient scopes on access token'
+
     def __init__(self) -> None:
         self.errors = []
 
@@ -60,10 +62,19 @@ class CanvasErrorHandler():
         exceptions = exceptions if isinstance(exceptions, list) else [exceptions]
         
         # Check for token-related errors
-        if any(isinstance(exc.original_exception, (InvalidAccessToken, Unauthorized)) for exc in exceptions):
-            # Invalid access token occurs when a user revokes Canvas Authorization from Canvas Profile settings.
-            # Unauthorized happens when you add more API scopes but the User Authorization is still limited to earlier API scopes.
-            raise CanvasAccessTokenException()
+        # if any(isinstance(exc.original_exception, (InvalidAccessToken, Unauthorized)) for exc in exceptions):
+        #     # Invalid access token occurs when a user revokes Canvas Authorization from Canvas Profile settings.
+        #     # Unauthorized happens when you add more API scopes but the User Authorization is still limited to earlier API scopes.
+        #     raise CanvasAccessTokenException()
+        
+        # Handle access token-related issues
+        for exc in exceptions:
+            if isinstance(exc.original_exception, InvalidAccessToken):
+                raise CanvasAccessTokenException()
+
+            if isinstance(exc.original_exception, Unauthorized) and self.INSUFFICIENT_SCOPES_TEXT in str(exc.original_exception).lower():
+                raise CanvasAccessTokenException()
+        
         if all(isinstance(error, HTTPAPIError) for error in exceptions):
             for error in exceptions:
                 self.errors.append({

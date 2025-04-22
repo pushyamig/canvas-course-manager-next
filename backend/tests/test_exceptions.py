@@ -1,7 +1,7 @@
 from django.test import SimpleTestCase
 from backend.ccm.canvas_api.exceptions import CanvasErrorHandler, HTTPAPIError
-from rest_framework.exceptions import ErrorDetail
-from canvasapi.exceptions import (BadRequest)
+from canvasapi.exceptions import (BadRequest, Unauthorized, InvalidAccessToken, Forbidden)
+from backend.ccm.canvas_api.exceptions import CanvasAccessTokenException
 
 class TestCanvasHTTPError(SimpleTestCase):
 
@@ -48,4 +48,72 @@ class TestCanvasHTTPError(SimpleTestCase):
             ]
         }
         self.assertEqual(error.to_dict(), expected_dict)
+
+    def test_invalid_access_token_exception(self):
+        error_data = [
+            HTTPAPIError(
+                failed_input="invalid_token",
+                original_exception=InvalidAccessToken({'errors': [{'message': 'Revoked access token.'}]})
+            )
+        ]
+        error = CanvasErrorHandler()
+
+        with self.assertRaises(CanvasAccessTokenException):
+            error.handle_canvas_api_exceptions(error_data)
+    
+    def test_insuffient_scopes_on_access_token_exception(self):
+        error_data = [
+            HTTPAPIError(
+                failed_input="invalid_token",
+                original_exception=Unauthorized({'errors': [{'message': 'Insufficient scopes on access token.'}], 'error_report_id': 7032522713})
+            )
+        ]
+        error = CanvasErrorHandler()
+
+        with self.assertRaises(CanvasAccessTokenException):
+            error.handle_canvas_api_exceptions(error_data)
+    
+    def test_Unauthorized_exception(self):
+        error_message = '{"errors": [{"message": "you do not have sufficient privilege"}]}'
+        error_data = [
+            HTTPAPIError(
+                failed_input="invalid_token",
+                original_exception=Unauthorized(error_message)
+            )
+        ]
+        error = CanvasErrorHandler()
+        error.handle_canvas_api_exceptions(error_data)
+
+        expected_dict = {
+            "statusCode": 401,
+            "errors": [
+                {
+                    "canvasStatusCode": 401,
+                    "message": error_message,
+                    "failedInput": "invalid_token"
+                }
+            ]
+        }
+        self.assertEqual(error.to_dict(), expected_dict)
+
+    def test_multiple_http_api_errors_with_invalid_access_token(self):
+        error_data = [
+            HTTPAPIError(
+                failed_input="input_1",
+                original_exception=BadRequest("Bad request error")
+            ),
+            HTTPAPIError(
+                failed_input="input_2",
+                original_exception=Forbidden("Forbidden error")
+            ),
+            HTTPAPIError(
+                failed_input="input_3",
+                original_exception=InvalidAccessToken("Invalid access token error")
+            )
+        ]
+        error = CanvasErrorHandler()
+
+        with self.assertRaises(CanvasAccessTokenException):
+            error.handle_canvas_api_exceptions(error_data)
+
 
