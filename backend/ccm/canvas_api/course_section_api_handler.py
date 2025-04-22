@@ -8,6 +8,7 @@ from rest_framework.request import Request
 
 from canvasapi.exceptions import CanvasException
 from canvasapi import Canvas
+from canvasapi.course import Course
 from drf_spectacular.utils import extend_schema
 
 from .exceptions import CanvasErrorHandler, HTTPAPIError
@@ -69,9 +70,15 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         sections: list = serializer.validated_data['sections']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
         canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
+        try:
+            # Check if the course exists
+            course: Course = canvas_api.get_course(course_id)
+        except CanvasException as e:
+            self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
+            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
            
         start_time: float = time.perf_counter()
-        results = asyncio.run(self.create_sections(canvas_api, course_id, sections))
+        results = asyncio.run(self.create_sections(course, sections))
         end_time: float = time.perf_counter()
         logger.info(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
 
@@ -89,16 +96,16 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         self.canvas_error.handle_canvas_api_exceptions(err_res)
         return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
         
-    async def create_sections(self, canvas_api, course_id, section_names):
+    async def create_sections(self, course: Course, section_names: list):
         """Creates multiple sections concurrently."""
-        tasks = [self.create_section(canvas_api, course_id, name) for name in section_names]
+        tasks = [self.create_section(course, name) for name in section_names]
         return await asyncio.gather(*tasks, return_exceptions=True)
 
-    def create_section_sync(self, canvas_api: Canvas, course_id: int, section_name: str):
+    def create_section_sync(self, course: Course, section_name: str):
         """Creates a section synchronously with automatic retry handling."""
         try:
-            logger.info(f"Creating section: {section_name} for course_id: {course_id} at {time.strftime('%H:%M:%S')}")
-            section = canvas_api.get_course(course_id).create_course_section(course_section={"name": section_name})
+            logger.info(f"Creating section: {section_name} for course_id: {course.id} at {time.strftime('%H:%M:%S')}")
+            section = course.create_course_section(course_section={"name": section_name})
             
             # Serialize the section and add total_students manually
             append_fields = {"total_students": 0}  # Default value for total_students
@@ -109,9 +116,9 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         except (CanvasException, Exception) as e:
             raise HTTPAPIError(section_name, e)
 
-    async def create_section(self, canvas_api: Canvas, course_id: int, section_name: str):
+    async def create_section(self, course: Course, section_name: str):
         """Async wrapper to call create_section_sync using asyncio.to_thread()."""
         try:
-            return await asyncio.to_thread(self.create_section_sync, canvas_api, course_id, section_name)
+            return await asyncio.to_thread(self.create_section_sync, course, section_name)
         except Exception as e:
             return e if isinstance(e, HTTPAPIError) else HTTPAPIError(section_name, e)

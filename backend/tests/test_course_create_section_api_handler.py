@@ -35,9 +35,9 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
     @patch('backend.ccm.canvas_api.course_section_api_handler.time.perf_counter')
     def test_create_sections_happy_path(self, mock_perf_counter, mock_to_thread):
         """Test successful concurrent creation of multiple sections."""
-        # Configure perf_counter mock to return fixed float values
-        mock_perf_counter.side_effect = [100.0, 100.5]  # start_time, end_time
-        
+        # Simplify the test by mocking the response directly
+        mock_perf_counter.side_effect = [100.0, 100.5]
+
         # Create request with section data
         request_data = {"sections": self.section_names}
         request = self.factory.post(
@@ -46,52 +46,46 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
             format='json'
         )
         request.data = request_data
-        
+
         # Mock serializer validation
         with patch('backend.ccm.canvas_api.course_section_api_handler.CourseSectionSerializer') as mock_serializer_class:
             mock_serializer = MagicMock()
             mock_serializer.is_valid.return_value = True
             mock_serializer.validated_data = request_data
             mock_serializer_class.return_value = mock_serializer
-            
+
             # Mock section creation results
-            section_results = []
-            for i, name in enumerate(self.section_names):
-                section_result = {
+            section_results = [
+                {
                     "id": 1000 + i,
                     "name": name,
                     "course_id": self.course_id,
-                    "total_students": 0
-                }
-                section_results.append(section_result)
-            
-            # Configure to_thread mock to return section results
-            async def mock_async_result(func, *args, **kwargs):
-                # Find the section name from args
-                section_name = args[2]  # Third argument to create_section_sync
-                # Find the corresponding result
-                for result in section_results:
-                    if result["name"] == section_name:
-                        return result
-                return None
-                
-            mock_to_thread.side_effect = mock_async_result
-            
+                    "total_students": 0,
+                    "nonxlist_course_id": None
+                } for i, name in enumerate(self.section_names)
+            ]
+
+            # Mock to_thread to return section results
+            mock_to_thread.side_effect = lambda func, *args, **kwargs: section_results.pop(0)
+
             # Execute the API call
             response = self.api_handler.post(request, self.course_id)
-            
-            # Verify response
+
+            # Verify response status and structure
             self.assertEqual(response.status_code, HTTPStatus.CREATED)
             self.assertEqual(len(response.data), len(self.section_names))
-            
+
             # Verify each section was created with correct data
             for i, section_name in enumerate(self.section_names):
-                self.assertEqual(response.data[i]["name"], section_name)
-                self.assertEqual(response.data[i]["course_id"], self.course_id)
-                
+                section_data = response.data[i]
+                self.assertEqual(section_data["id"], 1000 + i)
+                self.assertEqual(section_data["name"], section_name)
+                self.assertEqual(section_data["course_id"], self.course_id)
+                self.assertEqual(section_data["total_students"], 0)
+                self.assertIsNone(section_data["nonxlist_course_id"])
+
             # Verify concurrency - to_thread should be called for each section
             self.assertEqual(mock_to_thread.call_count, len(self.section_names))
-            
             
     def test_create_sections_validation_error(self):
         """Test that serializer validates section count doesn't exceed 60."""
@@ -107,7 +101,11 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
         # Mock the error response
         mock_error_response = {
             'statusCode': HTTPStatus.INTERNAL_SERVER_ERROR.value,
-            'message': "The list cannot be more than 60 items."
+            'errors': [{
+                'canvasStatusCode': HTTPStatus.INTERNAL_SERVER_ERROR.value,
+                'message': "The list cannot be more than 60 items.",
+                'failedInput': str(request_data)
+            }]
         }
         self.mock_canvas_error_handler.to_dict.return_value = mock_error_response
         
@@ -116,7 +114,7 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
         
         # Verify response
         self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR.value)
-        self.assertIn("The list cannot be more than 60 items", str(response.data))
+        self.assertEqual(response.data, mock_error_response)
 
     @patch('backend.ccm.canvas_api.course_section_api_handler.asyncio.to_thread')
     @patch('backend.ccm.canvas_api.course_section_api_handler.time.perf_counter')
@@ -162,8 +160,12 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
 
             # Mock error handler response
             mock_error_response = {
-                'statusCode': HTTPStatus.INTERNAL_SERVER_ERROR,
-                'message': "Some sections failed to create"
+                'statusCode': HTTPStatus.INTERNAL_SERVER_ERROR.value,
+                'errors': [{
+                    'canvasStatusCode': HTTPStatus.INTERNAL_SERVER_ERROR.value,
+                    'message': "Section creation failed",
+                    'failedInput': f"Section {i}"
+                } for i in range(3, 6)]
             }
             self.mock_canvas_error_handler.to_dict.return_value = mock_error_response
 
@@ -171,6 +173,6 @@ class TestCourseSectionAPIHandler(unittest.TestCase):
             response = self.api_handler.post(request, self.course_id)
 
             # Verify response
-            self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+            self.assertEqual(response.status_code, HTTPStatus.INTERNAL_SERVER_ERROR.value)
             self.assertEqual(mock_to_thread.call_count, 6)  # All 6 sections were attempted
-            self.assertIn("Some sections failed to create", str(response.data))
+            self.assertEqual(response.data, mock_error_response)
