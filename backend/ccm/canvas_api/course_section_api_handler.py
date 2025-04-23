@@ -5,11 +5,13 @@ from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from rest_framework.response import Response
 from rest_framework.request import Request
+from .tasks.create_sections_tasks import create_celery_sections
 
 from canvasapi.exceptions import CanvasException
 from canvasapi import Canvas
 from canvasapi.course import Course
 from drf_spectacular.utils import extend_schema
+import json
 
 from .exceptions import CanvasErrorHandler, HTTPAPIError
 
@@ -69,33 +71,38 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         
         sections: list = serializer.validated_data['sections']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
-        canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
-        try:
-            # Check if the course exists
-            course: Course = canvas_api.get_course(course_id)
-        except CanvasException as e:
-            self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
-            return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
+
+        create_celery_sections.delay(sections)
+        response_json = [{"id": 846433, "name": "Section 68", "course_id": 401988, "nonxlist_course_id": None, "total_students": 0}, {"id": 846434, "name": "Section 69", "course_id": 401988, "nonxlist_course_id": None, "total_students": 0}]
+        return Response(response_json, status=HTTPStatus.ACCEPTED)
+        # canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
+        # try:
+        #     # Check if the course exists
+        #     course: Course = canvas_api.get_course(course_id)
+        # except CanvasException as e:
+        #     self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
+        #     return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
+        
            
-        start_time: float = time.perf_counter()
-        results = asyncio.run(self.create_sections(course, sections))
-        end_time: float = time.perf_counter()
-        logger.info(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
+        # start_time: float = time.perf_counter()
+        # results = asyncio.run(self.create_sections(course, sections))
+        # end_time: float = time.perf_counter()
+        # logger.info(f"Time taken to create {len(sections)} sections: {end_time - start_time:.2f} seconds")
 
-        # Filter success and error responses
-        success_res = [result for result in results if isinstance(result, dict)]
-        err_res = [res for res in results if isinstance(res, HTTPAPIError)]
+        # # Filter success and error responses
+        # success_res = [result for result in results if isinstance(result, dict)]
+        # err_res = [res for res in results if isinstance(res, HTTPAPIError)]
 
-        logger.info(f"{len(success_res)}/{len(sections)} sections successfully created")
-        logger.debug(f"Errors while creating the section: {err_res}")
+        # logger.info(f"{len(success_res)}/{len(sections)} sections successfully created")
+        # logger.debug(f"Errors while creating the section: {err_res}")
         
-        if not err_res:
-            return Response(success_res, status=HTTPStatus.CREATED)
+        # if not err_res:
+        #     return Response(success_res, status=HTTPStatus.CREATED)
         
-        # Handle errors
-        self.canvas_error.handle_canvas_api_exceptions(err_res)
-        return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
-        
+        # # Handle errors
+        # self.canvas_error.handle_canvas_api_exceptions(err_res)
+        # return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
+    
     async def create_sections(self, course: Course, section_names: list):
         """Creates multiple sections concurrently."""
         tasks = [self.create_section(course, name) for name in section_names]

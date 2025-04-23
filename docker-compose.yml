@@ -50,5 +50,26 @@ services:
     command: redis-server --stop-writes-on-bgsave-error no --save ""
     container_name: ccm_redis
 
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # command: celery --app=backend worker -l info
+    command: >
+      sh -c "watchmedo auto-restart
+      --directory=./backend
+      --pattern=*.py
+      --recursive
+      -- celery --app=backend worker -l info"
+    env_file: ${HOME}/secrets/ccm/.env
+    volumes:
+      - ./backend:/code/backend
+      - ${HOME}/secrets/ccm:/secrets
+    container_name: ccm_celery
+    depends_on:
+      - database
+      - redis
+
 volumes:
   ccm-redis-data:

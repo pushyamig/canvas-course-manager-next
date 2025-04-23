@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'lti_tool',
     'rest_framework',
     'drf_spectacular',
-    'rest_framework_tracking'
+    'rest_framework_tracking',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -278,3 +279,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 DRF_TRACKING_ADMIN_LOG_READONLY = True
+
+# Celery settings
+CELERY_BROKER_URL = os.getenv('REDIS_LOCATION', "redis://ccm_redis:6379")
+CELERY_RESULT_BACKEND = 'django-db'
