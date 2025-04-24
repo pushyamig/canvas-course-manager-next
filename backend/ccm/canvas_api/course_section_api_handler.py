@@ -74,7 +74,7 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         sections: list = serializer.validated_data['sections']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
 
-        canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
+        canvas_api: Canvas = self.credential_manager.get_canvasapi_refresh_token(request)
         access_token = canvas_api._Canvas__requester.access_token  # Access the private attribute for the token
         logger.info(f"Access token retrieved: {access_token}")
         logger.info(f"Canvas API instance created for course_id: {canvas_api}")
