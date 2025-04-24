@@ -1,5 +1,7 @@
 import logging, asyncio, time
 from http import HTTPStatus
+
+from django.conf import settings
 from backend.ccm.canvas_api.canvasapi_serializer import CanvasObjectROSerializer, CourseSectionSerializer
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
@@ -72,10 +74,15 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         sections: list = serializer.validated_data['sections']
         logger.info(f"Creating {sections} sections for course_id: {course_id}")
 
-        create_celery_sections.delay(sections)
+        canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
+        access_token = canvas_api._Canvas__requester.access_token  # Access the private attribute for the token
+        logger.info(f"Access token retrieved: {access_token}")
+        logger.info(f"Canvas API instance created for course_id: {canvas_api}")
+        create_celery_sections.delay(access_token, f"https://{settings.CANVAS_OAUTH_CANVAS_DOMAIN}", course_id, sections)
+        
+        # Mock response for UI success message
         response_json = [{"id": 846433, "name": "Section 68", "course_id": 401988, "nonxlist_course_id": None, "total_students": 0}, {"id": 846434, "name": "Section 69", "course_id": 401988, "nonxlist_course_id": None, "total_students": 0}]
         return Response(response_json, status=HTTPStatus.ACCEPTED)
-        # canvas_api: Canvas = self.credential_manager.get_canvasapi_instance(request)
         # try:
         #     # Check if the course exists
         #     course: Course = canvas_api.get_course(course_id)
