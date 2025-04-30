@@ -9,7 +9,7 @@ def create_sections(task):
         task: Django-Q task object containing sections data
     """
     try:
-        logger.info(f"Received raw task object: {task}")
+        logger.info(f"Received raw task object for create sections: {task}")
         sections = task.get('sections', [])
         logger.info(f"Received sections to create: {sections}")
         

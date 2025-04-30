@@ -49,7 +49,7 @@ services:
         echo 'Waiting for MySQL...';
         sleep 1;
       done;
-      python manage.py qcluster"
+      watchfiles --filter python 'python manage.py qcluster' /code/backend"
     depends_on:
       - database
     env_file: ${HOME}/secrets/ccm/.env
