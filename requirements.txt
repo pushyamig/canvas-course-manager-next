@@ -24,5 +24,9 @@ redis==5.2.1 # For caching
 django-watchman==1.3 # For status monitoring
 canvasapi==3.3.0 # For Canvas API
 
+# Django-q
+django-q2==1.8.0
+watchfiles==1.0.5 # For file watching
+
 # Not in pypi https://github.com/Harvard-University-iCommons/django-canvas-oauth
 https://github.com/Harvard-University-iCommons/django-canvas-oauth/archive/v1.1.1.tar.gz

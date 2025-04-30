@@ -45,7 +45,7 @@ RUN python manage.py collectstatic --verbosity 0
 
 # Sets the local timezone of the docker image
 ARG TZ
-ENV TZ ${TZ:-America/Detroit}
+ENV TZ=${TZ:-America/Detroit}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # EXPOSE port 4000 to allow communication to/from server

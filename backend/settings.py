@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'lti_tool',
     'rest_framework',
     'drf_spectacular',
-    'rest_framework_tracking'
+    'rest_framework_tracking',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -278,3 +279,13 @@ SPECTACULAR_SETTINGS = {
 }
 
 DRF_TRACKING_ADMIN_LOG_READONLY = True
+
+Q_CLUSTER = {
+    'name': 'DjangORM',
+    'workers': 2,
+    'timeout': 90,
+    'retry': 120,
+    'queue_limit': 50,
+    'bulk': 10,
+    'orm': 'default'
+}
