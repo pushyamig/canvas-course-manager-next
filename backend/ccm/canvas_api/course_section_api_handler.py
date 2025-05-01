@@ -1,5 +1,7 @@
 import logging, asyncio, time
 from http import HTTPStatus
+
+from django.urls import reverse
 from backend.ccm.canvas_api.canvasapi_serializer import CanvasObjectROSerializer, CourseSectionSerializer
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
@@ -70,7 +72,10 @@ class CourseSectionAPIHandler(LoggingMixin, APIView):
         
         sections: list = serializer.validated_data['sections']
         task_data = {
-            'sections': sections
+            'sections': sections,
+            'course_id': course_id,
+            'user_id': request.user.id,
+            'canvas_callback_url': request.build_absolute_uri(reverse('canvas-oauth-callback')),
         }
         logger.info("Running the call as sync task")
         async_task('backend.ccm.services.create_sections', task=task_data)
