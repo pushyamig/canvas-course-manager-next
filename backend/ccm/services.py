@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from canvasapi import Canvas
 from backend.ccm.canvas_api.canvas_credential_manager import CanvasCredentialManager
+from django.core.mail import send_mail
 
 
 logger = logging.getLogger(__name__)
@@ -32,11 +33,27 @@ def create_sections(task):
         request.build_absolute_uri = lambda path: canvas_callback_url
         canvas_api: Canvas = course_manager.get_canvasapi_instance(request)
         course = canvas_api.get_course(course_id)
+        result_set = []
         for section_name in sections:
             section = course.create_course_section(course_section={"name": section_name})
             logger.info(f"Creating sections for course_id: {section}")
+            result_set.append({
+                'name': section_name,
+            })
             
-        return [{'name': name} for name in sections]
+        send_task_completion_email(user.email, result_set)
     except Exception as e:
         logger.error(f"Error in create_sections task: {str(e)}")
         raise
+
+def send_task_completion_email(to_email, results):
+
+    body = f"""
+    Enrollment to section {results} completed.
+    """
+    send_mail(
+        subject='Canvas Enrollment Task Complete',
+        message=body,
+        from_email='noreply@yourdomain.com',
+        recipient_list=[to_email],
+    )
