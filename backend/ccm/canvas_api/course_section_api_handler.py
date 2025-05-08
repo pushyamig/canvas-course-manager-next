@@ -19,7 +19,7 @@ from rest_framework_tracking.mixins import LoggingMixin
 
 logger = logging.getLogger(__name__)
 
-class CourseSectionAPIHandler(LoggingMixin, APIView):
+class CanvasCourseSectionAPIHandler(LoggingMixin, APIView):
     """
     "API handler for Canvas section data."
     """
