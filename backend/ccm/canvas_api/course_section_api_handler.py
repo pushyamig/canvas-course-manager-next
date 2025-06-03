@@ -44,17 +44,36 @@ class CanvasCourseSectionAPIHandler(LoggingMixin, APIView):
         try:
             logger.info(f"Retrieving course for section data with course_id: {course_id}")
             # Get list of sections, including total_students info
-            sections = canvas_api.get_course(course_id).get_sections(include=['total_students'], per_page=per_page)
-            
-            serializer = CanvasObjectROSerializer(sections, allowed_fields=self.course_section_allowed_fields, many=True)
-            logger.info(f"Section data retrieved with filtered fields: {self.course_section_allowed_fields}")
-            logger.debug(f"Section data in response: {serializer.data}")
+            sections = self.retrieve_sections_from_course_id(
+                canvas_api, 
+                course_id, 
+                self.course_section_allowed_fields, 
+                ['total_students'], 
+                per_page
+            )
+            logger.debug(f"Section data in response: {sections}")
 
-            return Response(serializer.data, status=HTTPStatus.OK)
+            return Response(sections, status=HTTPStatus.OK)
         except (CanvasException, Exception) as e:
             self.canvas_error.handle_canvas_api_exceptions(HTTPAPIError(str(course_id), e))
             return Response(self.canvas_error.to_dict(), status=self.canvas_error.to_dict().get('statusCode'))
     
+    @staticmethod    
+    def retrieve_sections_from_course_id(
+            canvas_api: Canvas, 
+            course_id: int, 
+            course_section_allowed_fields: set, 
+            include: list[str]=[], 
+            per_page: int = 100
+            ) -> list:
+        """
+        Retrieve sections from a course by course_id using UCF Canvas API.
+        """
+        sections = canvas_api.get_course(course_id).get_sections(include=include, per_page=per_page)
+        serializer = CanvasObjectROSerializer(sections, allowed_fields=course_section_allowed_fields, many=True)
+        sections_data = serializer.data
+        return sections_data
+        
     @extend_schema(
         operation_id="create_course_sections",
         summary="create Course sections",
