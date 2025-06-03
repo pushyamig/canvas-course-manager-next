@@ -45,12 +45,20 @@ COPY --from=node-build /build/bundles ./ccm_web/bundles
 COPY --from=node-build /build/webpack-stats.json ./ccm_web/
 COPY --from=node-build /build/node_modules ./ccm_web/node_modules
 
+ARG RUN_FRONTEND
+ENV RUN_FRONTEND=${RUN_FRONTEND:-false}
+
 # Run collectstatic *only* if RUN_FRONTEND is not true
-RUN python manage.py collectstatic --verbosity 0
+RUN if [ "$RUN_FRONTEND" != "true" ]; then \
+      echo "Running collectstatic during build..."; \
+      python manage.py collectstatic --noinput; \
+    else \
+      echo "Skipping collectstatic (RUN_FRONTEND=$RUN_FRONTEND)"; \
+    fi
 
 # Sets the local timezone of the docker image
 ARG TZ
-ENV TZ ${TZ:-America/Detroit}
+ENV TZ=${TZ:-America/Detroit}
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # EXPOSE port 4000 to allow communication to/from server
