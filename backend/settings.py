@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'lti_tool',
     'rest_framework',
     'drf_spectacular',
-    'rest_framework_tracking'
+    'rest_framework_tracking',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -278,3 +279,13 @@ SPECTACULAR_SETTINGS = {
 }
 
 DRF_TRACKING_ADMIN_LOG_READONLY = True
+
+# https://django-q2.readthedocs.io/en/master/configure.html
+Q_CLUSTER = {
+    'name': 'CCM_Cluster',
+    'workers': int(os.getenv('Q_CLUSTER_WORKERS', 4)),
+    'timeout': int(os.getenv('Q_CLUSTER_TIMEOUT', 1800)), # 30 minutes
+    'retry': int(os.getenv('Q_CLUSTER_RETRY', 3600)), # 1hr
+    'bulk': int(os.getenv('Q_CLUSTER_BULK', 5)),
+    'orm': 'default'
+}
