@@ -20,11 +20,7 @@ jobs:
           MYSQL_PASSWORD: admin
         ports:
           - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent" \
-          --health-interval=10s \
-          --health-timeout=5s \
-          --health-retries=5
+        options: --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=5s --health-retries=5
       redis:
         image: redis:7
         ports:
