@@ -59,6 +59,9 @@ jobs:
             echo "Waiting for MySQL..."
             sleep 2
           done
+      - name: Grant privileges to test DB user
+        run: |
+         docker exec ccm_db mysql -u root -p<mysql-root-password> -e "GRANT ALL PRIVILEGES ON test_ccm.* TO 'admin'@'%'; FLUSH PRIVILEGES;"
 
       - name: Run migrations
         run: |
