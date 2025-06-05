@@ -61,7 +61,7 @@ jobs:
           done
       - name: Grant privileges to test DB user
         run: |
-         docker exec ccm_db mysql -u root -p<mysql-root-password> -e "GRANT ALL PRIVILEGES ON test_ccm.* TO 'admin'@'%'; FLUSH PRIVILEGES;"
+         docker exec ccm_db mysql -u root -pccm_root_pw -e "GRANT ALL PRIVILEGES ON test_ccm.* TO 'admin'@'%'; FLUSH PRIVILEGES;"
 
       - name: Run migrations
         run: |
