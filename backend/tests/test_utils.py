@@ -1,4 +1,5 @@
 import os
+import importlib
 from django.test import SimpleTestCase
 from backend.ccm.utils import parse_csp
 
@@ -32,3 +33,49 @@ class TestParseCSP(SimpleTestCase):
     def test_parse_csp_without_key_extra_sources(self):
         result = parse_csp('CSP_STYLE_SRC', ["https:", "'unsafe-inline'"])
         self.assertEqual(result, ["'self'", "https:", "'unsafe-inline'"])
+
+class TestQClusterSettings(SimpleTestCase):
+    def setUp(self):
+        self.settings_path = 'backend.settings'
+        self.env_keys = [
+            'Q_CLUSTER_WORKERS',
+            'Q_CLUSTER_TIMEOUT',
+            'Q_CLUSTER_RETRY',
+            'Q_CLUSTER_BULK',
+        ]
+        # Save and clear any Q_CLUSTER env vars
+        self.old_env = {k: os.environ.get(k) for k in self.env_keys}
+        for k in self.env_keys:
+            if k in os.environ:
+                del os.environ[k]
+
+    def tearDown(self):
+        # Restore old env vars
+        for k, v in self.old_env.items():
+            if v is not None:
+                os.environ[k] = v
+            elif k in os.environ:
+                del os.environ[k]
+
+    def test_q_cluster_defaults(self):
+        # Reload settings to pick up env changes
+        import backend.settings as settings
+        importlib.reload(settings)
+        q = settings.Q_CLUSTER
+        self.assertEqual(q['workers'], 4)
+        self.assertEqual(q['timeout'], 1800)
+        self.assertEqual(q['retry'], 3600)
+        self.assertEqual(q['bulk'], 5)
+
+    def test_q_cluster_env_override(self):
+        os.environ['Q_CLUSTER_WORKERS'] = '7'
+        os.environ['Q_CLUSTER_TIMEOUT'] = '99'
+        os.environ['Q_CLUSTER_RETRY'] = '1234'
+        os.environ['Q_CLUSTER_BULK'] = '42'
+        import backend.settings as settings
+        importlib.reload(settings)
+        q = settings.Q_CLUSTER
+        self.assertEqual(q['workers'], 7)
+        self.assertEqual(q['timeout'], 99)
+        self.assertEqual(q['retry'], 1234)
+        self.assertEqual(q['bulk'], 42)
