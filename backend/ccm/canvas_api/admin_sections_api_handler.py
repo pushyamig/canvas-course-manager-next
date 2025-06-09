@@ -50,6 +50,16 @@ class CanvasAdminSectionsAPIHandler(LoggingMixin, APIView):
             # Get accounts accessible to the admin user
             logger.info(f"Retrieving admin sections data for term_id: {term_id}")
             accounts = canvas_api.get_accounts()
+            if not accounts:
+                logger.info("No accounts found that the current API user can view or manage.")
+                logger.info("This is common for non-admin users (e.g., students, teachers).")
+                return []
+            viewable_accounts = []
+            for account in accounts:
+            # Each 'account' object returned by get_accounts() will have 'id' and 'name' attributes.
+                viewable_accounts.append({'id': account.id, 'name': account.name})
+                logger.info(f"  Found account: {account.name} (ID: {account.id})")
+
             accounts_serializer = CanvasObjectROSerializer(accounts, allowed_fields={'id','parent_account_id'})
             accounts_data = accounts_serializer.data
             ## ^ STUCK HERE: EMPTY DATA RETURNED "[]", need to set admin access?
