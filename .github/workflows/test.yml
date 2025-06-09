@@ -70,16 +70,17 @@ jobs:
       - name: Run tests with coverage
         run: |
           pip install coverage
-          coverage run --source=backend/tests manage.py test
-          coverage xml
+          coverage run --source=backend/tests manage.py test | tee django-coverage.txt
+          coverage xml -o cov.xml
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.xml
+          path: cov.xml
 
       - name: Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: coverage.xml
+          pytest-coverage-path: django-coverage.txt
+          pytest-xml-coverage-path: cov.xml
