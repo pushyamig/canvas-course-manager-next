@@ -69,7 +69,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install coverage codecov
+          pip install coverage
           coverage run manage.py test
           coverage report
           coverage xml
@@ -79,10 +79,8 @@ jobs:
         with:
           name: coverage-report
           path: coverage.xml
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v4
-      #   with:
-      #     files: ./coverage.xml
-      #     flags: unittests
-      #     name: codecov-coverage
-      #     fail_ci_if_error: true
+
+      - name: Coverage Comment
+        uses: MishaKav/pytest-coverage-comment@v3
+        with:
+          pytest-coverage-path: coverage.xml
