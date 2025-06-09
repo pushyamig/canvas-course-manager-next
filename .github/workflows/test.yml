@@ -70,8 +70,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           pip install coverage
-          coverage run manage.py test
-          coverage report
+          coverage run --source=backend/tests manage.py test
           coverage xml
 
       - name: Upload coverage report
