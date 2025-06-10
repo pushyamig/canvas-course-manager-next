@@ -69,19 +69,22 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install coverage
-          coverage run --source=backend manage.py test | tee django-coverage.txt
-          coverage xml -o cov.xml
-          echo "\nTest Summary:" && grep -E 'Ran [0-9]+ test' django-coverage.txt | awk '{print "| Tests Run | ",$2,"|"}' && grep -E 'FAILED|OK' django-coverage.txt | awk '{print "| Result | ",$1,"|"}'
-
+          pip install coverage lxml unittest-xml-reporting
+          coverage run --source=backend manage.py test --testrunner=xmlrunner.extra.djangotestrunner.XMLTestRunner --output-file=test-results.xml | tee django-coverage.txt
+          coverage report
+          coverage xml -o coverage.xml
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: cov.xml
+          path: |
+              coverage.xml
+              test-results.xml
+
 
       - name: Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: django-coverage.txt
-          pytest-xml-coverage-path: cov.xml
+          pytest-xml-coverage-path: coverage.xml
+          junitxml-path: test-results.xml
