@@ -69,20 +69,26 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install coverage
-          coverage run --source=backend manage.py test | tee django-coverage.txt
-          coverage xml -o cov.xml
+          pip install coverage junit-report
+          coverage run --source=backend manage.py test | tee django-test.txt
+          coverage xml -o coverage.xml
+          python -m coverage report > coverage-report.txt
+          python -m junit_report.writer coverage.xml test-results.xml
           # Print test summary table
-          echo "\nTest Summary:" && grep -E 'Ran [0-9]+ test' django-coverage.txt | awk '{print "| Tests Run | ",$2,"|"}' && grep -E 'FAILED|OK' django-coverage.txt | awk '{print "| Result | ",$1,"|"}'
+          echo "\nTest Summary:" && grep -E 'Ran [0-9]+ test' django-test.txt | awk '{print "| Tests Run | ",$2,"|"}' && grep -E 'FAILED|OK' django-test.txt | awk '{print "| Result | ",$1,"|"}'          
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: cov.xml
+          path: coverage.xml
 
       - name: Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
-          pytest-coverage-path: django-coverage.txt
-          pytest-xml-coverage-path: cov.xml
+          pytest-coverage-path: coverage-report.txt
+          pytest-xml-coverage-path: coverage.xml
+          junitxml-path: test-results.xml
+          junitxml-title: "Django Test Results"
+          title: "Coverage Report"
+          create-new-comment: false
