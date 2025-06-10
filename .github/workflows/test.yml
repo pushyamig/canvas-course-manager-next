@@ -72,8 +72,6 @@ jobs:
           pip install coverage
           coverage run --source=backend manage.py test | tee django-coverage.txt
           coverage xml -o cov.xml
-          # Print test summary table
-          echo "\nTest Summary:" && grep -E 'Ran [0-9]+ test' django-coverage.txt | awk '{print "| Tests Run | ",$2,"|"}' && grep -E 'FAILED|OK' django-coverage.txt | awk '{print "| Result | ",$1,"|"}'
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
