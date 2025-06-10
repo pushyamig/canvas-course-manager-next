@@ -69,12 +69,10 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install coverage unittest-xml-reporting
+          pip install coverage
           coverage run --source=backend manage.py test | tee django-coverage.txt
           coverage report
           coverage xml -o cov.xml
-          # Generate JUnit XML for test results using Django's test runner
-          python manage.py test --testrunner=xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input --verbosity=2 --output-file=TEST-results.xml
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -87,4 +85,3 @@ jobs:
         with:
           pytest-coverage-path: django-coverage.txt
           pytest-xml-coverage-path: cov.xml
-          junitxml-path: TEST-results.xml
