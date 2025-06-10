@@ -69,11 +69,10 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install coverage junit-report
+          pip install coverage
           coverage run --source=backend manage.py test | tee django-test.txt
           coverage xml -o coverage.xml
           python -m coverage report > coverage-report.txt
-          python -m junit_report.writer coverage.xml test-results.xml
           # Print test summary table
           echo "\nTest Summary:" && grep -E 'Ran [0-9]+ test' django-test.txt | awk '{print "| Tests Run | ",$2,"|"}' && grep -E 'FAILED|OK' django-test.txt | awk '{print "| Result | ",$1,"|"}'          
 
@@ -88,7 +87,5 @@ jobs:
         with:
           pytest-coverage-path: coverage-report.txt
           pytest-xml-coverage-path: coverage.xml
-          junitxml-path: test-results.xml
-          junitxml-title: "Django Test Results"
-          title: "Coverage Report"
+          title: "Django Coverage Report"
           create-new-comment: false
