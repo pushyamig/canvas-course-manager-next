@@ -70,15 +70,16 @@ jobs:
       - name: Run tests with coverage
         run: |
           pip install coverage
-          coverage run --source=backend manage.py test -v2 --junitxml=pytest.xml | tee django-test.txt
-          coverage xml -o cov.xml
-          coverage report > coverage-report.txt
+          coverage run --source=backend manage.py test -v2 | tee django-test.txt
+          coverage xml -o coverage.xml
+          coverage report --skip-covered > coverage-report.txt
 
       - name: Coverage Comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: coverage-report.txt
-          pytest-xml-coverage-path: cov.xml
+          pytest-xml-coverage-path: coverage.xml
           title: "Django Coverage Report"
-          junitxml-path: pytest.xml
+          hide-report: true
+          report-only-changed-files: true
           create-new-comment: false
