@@ -70,7 +70,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           pip install coverage
-          coverage run --source=backend manage.py test -v2 | tee django-test.txt
+          coverage run --source=backend manage.py test -v2 --junitxml=pytest.xml | tee django-test.txt
           coverage xml -o cov.xml
           coverage report > coverage-report.txt
 
@@ -80,4 +80,5 @@ jobs:
           pytest-coverage-path: coverage-report.txt
           pytest-xml-coverage-path: cov.xml
           title: "Django Coverage Report"
+          junitxml-path: pytest.xml
           create-new-comment: false
