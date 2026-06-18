@@ -48,7 +48,7 @@ function App (props: HomeProps): JSX.Element {
   
   if (!globals.user.hasCanvasToken) {
     return (
-      <Layout>
+      <Layout bannerHtml={globals.banner} footerHtml={globals.footer}>
         <AuthorizePrompt helpURL={globals.baseHelpURL} />
       </Layout>
     )
@@ -57,7 +57,7 @@ function App (props: HomeProps): JSX.Element {
   if (isCourseLoading) return loading
   if (getCourseError !== undefined || course === undefined) {
     return (
-      <Layout>
+      <Layout bannerHtml={globals.banner} footerHtml={globals.footer}>
         <ErrorAlert
           messages={[<APIErrorMessage key={0} context='loading course data' error={getCourseError} />]}
         />
@@ -70,7 +70,7 @@ function App (props: HomeProps): JSX.Element {
     : undefined
 
   return (
-    <Layout {...{ features, pathnames }} devMode={globals?.environment === 'development'} isAdmin={globals?.user.isStaff?? false} >
+    <Layout {...{ features, pathnames }} devMode={globals?.environment === 'development'} isAdmin={globals?.user.isStaff?? false} bannerHtml={globals.banner} footerHtml={globals.footer} >
       <Routes>
         <Route path='/' element={
           <Home globals={globals} course={course} setCourse={setCourse} getCourseError={getCourseError} />

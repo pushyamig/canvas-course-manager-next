@@ -15,9 +15,10 @@ class CCMGlobalsTests(SimpleTestCase):
             }
         }
 
+    @patch('backend.ccm.context_processors.FlatPage.objects.filter')
     @patch('backend.ccm.context_processors.GlobalsUserSerializer')
     @patch('backend.ccm.context_processors.CanvasOAuth2Token.objects.filter')
-    def test_ccm_globals_authenticated_user(self, mock_canvas_oauth_filter, mock_globals_user_serializer):
+    def test_ccm_globals_authenticated_user(self, mock_canvas_oauth_filter, mock_globals_user_serializer, mock_flatpage_filter):
         mock_user = MagicMock(is_authenticated=True)
         self.request.user = mock_user
 
@@ -26,6 +27,10 @@ class CCMGlobalsTests(SimpleTestCase):
             'isStaff': True
         }
         mock_canvas_oauth_filter.return_value.exists.return_value = True
+        # Map flatpage URL -> content so banner/footer resolve to distinct values.
+        flatpage_content = {'/banner/': '<p>Welcome</p>', '/footer/': '<p>Contact us</p>'}
+        mock_flatpage_filter.side_effect = \
+            lambda url: MagicMock(**{'values_list.return_value.first.return_value': flatpage_content.get(url)})
 
         context = ccm_globals(self.request)
 
@@ -40,3 +45,22 @@ class CCMGlobalsTests(SimpleTestCase):
         self.assertEqual(context['ccm_globals']['baseHelpURL'], settings.HELP_URL)
         self.assertEqual(context['ccm_globals']['googleAnalyticsId'], settings.GOOGLE_ANALYTICS_ID)
         self.assertEqual(context['ccm_globals']['umConsentManagerScriptUrl'], settings.UM_CONSENT_MANAGER_SCRIPT_URL)
+        self.assertEqual(context['ccm_globals']['banner'], '<p>Welcome</p>')
+        self.assertEqual(context['ccm_globals']['footer'], '<p>Contact us</p>')
+
+    @patch('backend.ccm.context_processors.FlatPage.objects.filter')
+    @patch('backend.ccm.context_processors.GlobalsUserSerializer')
+    @patch('backend.ccm.context_processors.CanvasOAuth2Token.objects.filter')
+    def test_ccm_globals_missing_flatpages_default_to_empty(self, mock_canvas_oauth_filter, mock_globals_user_serializer, mock_flatpage_filter):
+        mock_user = MagicMock(is_authenticated=True)
+        self.request.user = mock_user
+
+        mock_globals_user_serializer.return_value.data = {'loginId': 'jdoe', 'isStaff': True}
+        mock_canvas_oauth_filter.return_value.exists.return_value = True
+        # No matching flatpage row -> .first() returns None -> content defaults to ''.
+        mock_flatpage_filter.return_value.values_list.return_value.first.return_value = None
+
+        context = ccm_globals(self.request)
+
+        self.assertEqual(context['ccm_globals']['banner'], '')
+        self.assertEqual(context['ccm_globals']['footer'], '')

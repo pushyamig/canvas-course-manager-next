@@ -45,6 +45,8 @@ export interface Globals {
   baseHelpURL: string
   googleAnalyticsId: string;
   umConsentManagerScriptUrl: string;
+  banner: string
+  footer: string
 }
 
 // API Errors

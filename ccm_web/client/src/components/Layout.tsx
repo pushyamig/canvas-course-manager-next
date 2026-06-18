@@ -5,6 +5,7 @@ import { Build as BuildIcon } from '@mui/icons-material'
 
 import Breadcrumbs, { BreadcrumbsProps } from './Breadcrumbs.js'
 import ResponsiveHelper from './ResponsiveHelper.js'
+import SanitizedHtml from './SanitizedHtml.js'
 
 const PREFIX = 'Layout'
 
@@ -13,7 +14,9 @@ const classes = {
   spacing: `${PREFIX}-spacing`,
   devModePaper: `${PREFIX}-devModePaper`,
   swaggerLink: `${PREFIX}-swaggerLink`,
-  breadcrumbsContainer: `${PREFIX}-breadcrumbsContainer`
+  breadcrumbsContainer: `${PREFIX}-breadcrumbsContainer`,
+  banner: `${PREFIX}-banner`,
+  footerContent: `${PREFIX}-footerContent`
 }
 
 const StyledGrid = styled(Grid)((
@@ -43,12 +46,27 @@ const StyledGrid = styled(Grid)((
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center'
+  },
+
+  // Admin-configurable banner/footer content. Constrain overly long input so it
+  // wraps and scrolls rather than breaking the layout.
+  [`& .${classes.banner}`]: {
+    marginBottom: theme.spacing(2),
+    overflowWrap: 'break-word',
+    maxHeight: '40vh',
+    overflowY: 'auto'
+  },
+
+  [`& .${classes.footerContent}`]: {
+    overflowWrap: 'break-word'
   }
 }))
 
 interface LayoutProps extends BreadcrumbsProps {
   devMode?: boolean
   isAdmin?: boolean
+  bannerHtml?: string
+  footerHtml?: string
   children: React.ReactNode
 }
 
@@ -76,6 +94,7 @@ export default function Layout (props: LayoutProps): JSX.Element {
   return (
     <StyledGrid container className={classes.root}>
       <Grid item sm={12} md={10} lg={9}>
+        <SanitizedHtml html={props.bannerHtml ?? ''} className={classes.banner} />
         {devBlock}
         <div className={`${classes.spacing} ${classes.breadcrumbsContainer}`}>
           <Breadcrumbs {...props} />
@@ -85,6 +104,7 @@ export default function Layout (props: LayoutProps): JSX.Element {
         <Divider className={classes.spacing} />
         <footer>
           <Typography>{`Copyright © ${new Date().getFullYear()} The Regents of the University of Michigan`}</Typography>
+          <SanitizedHtml html={props.footerHtml ?? ''} className={classes.footerContent} />
         </footer>
       </Grid>
     </StyledGrid>

@@ -1,10 +1,22 @@
 from typing import Any, Dict, Optional, Union
 
 from django.conf import settings
+from django.contrib.flatpages.models import FlatPage
 from django.http import HttpRequest
 
 from .serializer import GlobalsUserSerializer
 from canvas_oauth.models import CanvasOAuth2Token
+
+# Flatpage URLs backing the admin-configurable banner and footer. These pages
+# are seeded by backend/ccm/migrations/0001_seed_flatpages.py and edited via the
+# Django admin; we only read their content here (they are not served directly).
+BANNER_FLATPAGE_URL = '/banner/'
+FOOTER_FLATPAGE_URL = '/footer/'
+
+
+def get_flatpage_content(url: str) -> str:
+    """Return the content of the flatpage at ``url``, or '' if it doesn't exist."""
+    return FlatPage.objects.filter(url=url).values_list('content', flat=True).first() or ''
 
 
 def ccm_globals(request: HttpRequest) -> Dict[str, Union[str, Dict[str, Any], None]]:
@@ -27,5 +39,7 @@ def ccm_globals(request: HttpRequest) -> Dict[str, Union[str, Dict[str, Any], No
       'baseHelpURL': settings.HELP_URL,
       'googleAnalyticsId': settings.GOOGLE_ANALYTICS_ID,
       'umConsentManagerScriptUrl': settings.UM_CONSENT_MANAGER_SCRIPT_URL,
+      'banner': get_flatpage_content(BANNER_FLATPAGE_URL),
+      'footer': get_flatpage_content(FOOTER_FLATPAGE_URL),
       }
     }

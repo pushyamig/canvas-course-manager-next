@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.flatpages',
     'webpack_loader',
     'watchman',
     'canvas_oauth.apps.CanvasOAuthConfig',
@@ -61,6 +63,9 @@ INSTALLED_APPS = [
     'django_q',
     'csp',
 ]
+
+# Required by django.contrib.sites, which django.contrib.flatpages depends on.
+SITE_ID = 1
 
 MIGRATION_MODULES = {
     'canvas_oauth': 'backend.canvas_oauth.migrations',

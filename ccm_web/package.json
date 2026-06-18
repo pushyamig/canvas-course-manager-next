@@ -19,6 +19,7 @@
     "@mui/material": "5.18.0",
     "@react-hook/debounce": "4.0.0",
     "cookie-parser": "1.4.7",
+    "dompurify": "3.4.11",
     "js-cookie": "3.0.8",
     "keycode-js": "3.1.0",
     "notistack": "3.0.2",
