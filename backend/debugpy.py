@@ -12,7 +12,10 @@ def check_and_enable_debugpy() -> None:
     if debugpy_enable:
         import debugpy
         logging.debug('DEBUGPY: Enabled Listening on ({0}:{1})'.format(debugpy_address, debugpy_port))
-        debugpy.listen((debugpy_address, int(debugpy_port)))
-        if debugpy_wait_for_debugger:
-            logger.info("Waiting for debugger to attach")
-            debugpy.wait_for_client()
+        try:
+            debugpy.listen((debugpy_address, int(debugpy_port)))
+            if debugpy_wait_for_debugger:
+                logger.info("Waiting for debugger to attach")
+                debugpy.wait_for_client()
+        except Exception as e:
+            logger.error("Failed to enable debugpy: %s", e)

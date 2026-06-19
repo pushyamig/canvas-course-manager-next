@@ -82,10 +82,6 @@ export default function Layout (props: LayoutProps): JSX.Element {
           {props.isAdmin && <Link href="/admin">Admin</Link>}
         </div>
         <div className={classes.spacing}>{props.children}</div>
-        <Divider className={classes.spacing} />
-        <footer>
-          <Typography>{`Copyright © ${new Date().getFullYear()} The Regents of the University of Michigan`}</Typography>
-        </footer>
       </Grid>
     </StyledGrid>
   )

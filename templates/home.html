@@ -1,4 +1,6 @@
 {% load render_bundle from webpack_loader %}
+{% load flatpages %}
+{% load flatpage_filters %}
 <!DOCTYPE html>
 <html>
   <head>
@@ -7,8 +9,19 @@
     {{ ccm_globals|json_script:"ccm_globals" }}
     <title>Canvas Course Manager</title>
   </head>
+  <script>
+    const canvasCourseId = "{{ course_id|escapejs }}";
+    console.log('Course ID:', canvasCourseId);
+    // DEBUG: remove before commit
+    const ccmGlobals = JSON.parse(document.getElementById('ccm_globals').textContent).course.id;
+    console.log('ccm_globals course ID:', ccmGlobals);
+  </script>
   <body>
+    {% get_flatpages '/banner' as banner_pages %}
+    {% for page in banner_pages %}<div id="ccm-flatpage-banner">{% render_flatpage page %}</div>{% endfor %}
     <div id="root"></div>
+    {% get_flatpages '/footer' as footer_pages %}
+    {% for page in footer_pages %}<div id="ccm-flatpage-footer" style="text-align: center;">{% render_flatpage page %}</div>{% endfor %}
     {% render_bundle 'main' 'js' %}
   </body>
 </html>

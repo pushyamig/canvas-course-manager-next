@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.sites',
+    'django.contrib.flatpages',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -78,10 +80,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'canvas_oauth.middleware.OAuthMiddleware',
-    'csp.middleware.CSPMiddleware'
+    'csp.middleware.CSPMiddleware',
+    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
+
+SITE_ID = int(os.getenv('DJANGO_SITE_ID', 1))
 
 TEMPLATES = [
     {
