@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Button, Grid, TextField, Typography } from '@mui/material'
 import { Edit as EditIcon } from '@mui/icons-material'
@@ -63,7 +63,8 @@ function InlineTextEdit (props: InlineTextEditProps): JSX.Element {
     if (props.text === tempTextValue) return
     const result = props.validate(tempTextValue)
     if (!result.isValid) {
-      return setValidationResult(result)
+      setValidationResult(result)
+      return
     }
     await props.save(tempTextValue)
     setIsEditing(false)

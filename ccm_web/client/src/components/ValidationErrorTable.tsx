@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, type JSX } from 'react'
 
 import {
   Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow
@@ -97,9 +97,11 @@ function ErrorTable (props: ErrorTableProps): JSX.Element {
                 count={tableRows.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
-                SelectProps={{
-                  inputProps: { 'aria-label': 'rows per page' },
-                  native: true
+                slotProps={{
+                  select: {
+                    inputProps: { 'aria-label': 'rows per page' },
+                    native: true
+                  }
                 }}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}

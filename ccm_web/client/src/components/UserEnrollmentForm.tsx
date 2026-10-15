@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Backdrop, Button, CircularProgress, Grid, Paper, Typography } from '@mui/material'
 
@@ -90,13 +90,13 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
     async (loginId: string): Promise<CanvasUserCondensed | null> => {
       return await api.getUserInfo(loginId)
     },
-    (result: CanvasUserCondensed | null) => setUserInfo(result)
+    (result: CanvasUserCondensed | null) => { setUserInfo(result) }
   )
 
   const [doAddEnrollment, isAddEnrollmentLoading, addEnrollmentError, clearAddEnrollmentError] = usePromise(
     async (sectionId: number, enrollment: AddExternalUserEnrollment) => await api.addSectionEnrollments(
       sectionId, [{ loginId: enrollment.email, role: enrollment.role }]),
-    () => setSuccessResult({ createdAndInvited: false, enrolled: true })
+    () => { setSuccessResult({ createdAndInvited: false, enrolled: true }) }
   )
 
   const [
@@ -113,7 +113,7 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
       }
       return { createdAndInvited, enrolled: true }
     },
-    (result: ExternalEnrollmentSummary) => setSuccessResult(result)
+    (result: ExternalEnrollmentSummary) => { setSuccessResult(result) }
   )
 
   const errorsWithContext = [
@@ -155,7 +155,7 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
     const result = validateString(email, emailInputSchema)
     setEmailValidationResult(result)
     if (!result.isValid || email === undefined) return
-    return await doSearchForUser(email)
+    await doSearchForUser(email)
   }
 
   const handleSubmitClick = async (): Promise<void> => {
@@ -165,7 +165,8 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
       role === undefined ||
       selectedSection === undefined
     ) {
-      return setShowIncompleteAlerts(true)
+      setShowIncompleteAlerts(true)
+      return
     }
     setShowIncompleteAlerts(false)
 
@@ -173,7 +174,8 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
     if (email === undefined || emailValidationResult?.isValid !== true) return
 
     if (userInfo !== null) {
-      return await doAddEnrollment(selectedSection.id, { email, role })
+      await doAddEnrollment(selectedSection.id, { email, role })
+      return
     }
     const firstNameResult = validateString(firstName, firstNameInputSchema)
     setFirstNameValidationResult(firstNameResult)
@@ -400,12 +402,11 @@ export default function UserEnrollmentForm (props: UserEnrollmentFormProps): JSX
   }
 
   const renderSuccess = (result: ExternalEnrollmentSummary): JSX.Element => {
-    const messageText = (
-      result.createdAndInvited
+    const messageText = `${result.createdAndInvited
         ? 'The new user was added to Canvas, sent an email invitation with instructions to create an account to login, and'
         : 'The existing user was'
 
-    ) + ' enrolled in the selected section!'
+      } enrolled in the selected section!`
     const nextAction = (
       <span>See the user in the course&apos;s sections on the <CanvasSettingsLink url={props.settingsURL} /> for your course.</span>
     )

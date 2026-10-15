@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import {
   Accordion as MUIAccordion,
@@ -57,8 +57,8 @@ export default function Accordion (props: AccordionProps): JSX.Element {
           expandIcon={<ExpandMoreIcon classes={{ root: summaryTextClass }}/>}
           id={`${props.id}-header`}
           aria-controls={`${props.id}-content`}
-          onFocusVisible={() => setIsSummaryFocusVisible(true)}
-          onBlur={() => setIsSummaryFocusVisible(false)}
+          onFocusVisible={() => { setIsSummaryFocusVisible(true) }}
+          onBlur={() => { setIsSummaryFocusVisible(false) }}
         >
           {props.title}
         </MUIAccordionSummary>

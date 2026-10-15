@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Backdrop, Button, CircularProgress, Grid, Link, Typography } from '@mui/material'
 
@@ -120,7 +120,7 @@ export default function SingleSectionEnrollmentWorkflow (props: SingleSectionEnr
       REQUIRED_ENROLLMENT_HEADERS, isEnrollmentRecord, MAX_ENROLLMENT_RECORDS
     )
     const validationResult = csvValidator.validate(headers, data)
-    if (!validationResult.valid) return setSchemaInvalidations(validationResult.schemaInvalidations)
+    if (!validationResult.valid) { setSchemaInvalidations(validationResult.schemaInvalidations); return }
 
     const enrollmentRecords = validationResult.validData
     const errors: EnrollmentInvalidation[] = []
@@ -131,7 +131,7 @@ export default function SingleSectionEnrollmentWorkflow (props: SingleSectionEnr
     const loginIDsValidator = new LoginIDRowsValidator()
     errors.push(...loginIDsValidator.validate(enrollmentRecords.map(r => r.LOGIN_ID)))
 
-    if (errors.length > 0) return setRowInvalidations(errors)
+    if (errors.length > 0) { setRowInvalidations(errors); return }
 
     const enrollments: RowNumberedAddEnrollment[] = enrollmentRecords.map((r, i) => ({
       rowNumber: getRowNumber(i),
@@ -148,7 +148,7 @@ export default function SingleSectionEnrollmentWorkflow (props: SingleSectionEnr
     parser.parseCSV(
       file,
       handleValidation,
-      (message) => setSchemaInvalidations([{ message, type: InvalidationType.Error }])
+      (message) => { setSchemaInvalidations([{ message, type: InvalidationType.Error }]) }
     )
   }
 
@@ -195,7 +195,7 @@ export default function SingleSectionEnrollmentWorkflow (props: SingleSectionEnr
             variant='contained'
             color='primary'
             disabled={selectedSection === undefined}
-            onClick={() => setActiveStep(CSVWorkflowStep.Upload)}
+            onClick={() => { setActiveStep(CSVWorkflowStep.Upload) }}
           >
             Select
           </Button>
@@ -282,7 +282,7 @@ export default function SingleSectionEnrollmentWorkflow (props: SingleSectionEnr
             </Grid>
             <Grid item xs={12} sm={3} sx={{ order: { xs: 1, sm: 2 } }}>
               <ConfirmDialog
-                submit={async () => await doAddEnrollments(section, enrollments)}
+                submit={async () => { await doAddEnrollments(section, enrollments) }}
                 cancel={handleUploadReset}
                 disabled={isAddEnrollmentsLoading}
               />

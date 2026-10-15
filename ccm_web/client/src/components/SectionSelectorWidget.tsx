@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { useSnackbar } from 'notistack'
 import {
@@ -268,13 +268,11 @@ function SectionSelectorWidget (props: ISectionSelectorWidgetProps): JSX.Element
     const alreadySelected = props.selectedSections.filter(s => { return s.id === sectionId })
     if (alreadySelected.length > 0) {
       newSelections.splice(newSelections.indexOf(alreadySelected[0]), 1)
-    } else {
-      if (props.multiSelect) {
+    } else if (props.multiSelect) {
         newSelections.push(internalSections.filter(s => { return s.id === sectionId })[0])
       } else {
         newSelections = [internalSections.filter(s => { return s.id === sectionId })[0]]
       }
-    }
 
     props.selectionUpdated(newSelections)
   }
@@ -557,7 +555,7 @@ function SectionSelectorWidget (props: ISectionSelectorWidgetProps): JSX.Element
   return (
     <Root>
     <span aria-live='polite' aria-atomic='true' className={classes.srOnly}>
-      {props.selectedSections.length} {'section' + (props.selectedSections.length === 1 ? '' : 's')} selected
+      {props.selectedSections.length} {`section${props.selectedSections.length === 1 ? '' : 's'}`} selected
     </span>
     <Grid container>
       <Grid className={classes.header} container item xs={12}>
@@ -623,7 +621,7 @@ function SectionSelectorWidget (props: ISectionSelectorWidgetProps): JSX.Element
               key={section.id}
               divider
               disableGutters
-              onClick={() => handleListItemClick(section.id)}
+              onClick={() => { handleListItemClick(section.id) }}
               selected={isSelected}
               disabled={section.locked}
               classes={{

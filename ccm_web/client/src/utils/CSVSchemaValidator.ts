@@ -47,8 +47,8 @@ class CSVSchemaValidator<T extends CSVRecord> implements ICSVSchemaValidator<T> 
   validateHeaders (headers: string[] | undefined): SchemaInvalidation | undefined {
     const invalidation = {
       message: (
-        'The headers are invalid. The first line must include the following headers: ' +
-        this.requiredHeaders.map(h => `"${h}"`).join(', ')
+        `The headers are invalid. The first line must include the following headers: ${
+        this.requiredHeaders.map(h => `"${h}"`).join(', ')}`
       ),
       type: InvalidationType.Error
     }

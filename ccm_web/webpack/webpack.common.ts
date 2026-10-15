@@ -3,8 +3,7 @@ import type * as webpack from 'webpack'
 import BundleTrackerPlugin from 'webpack-bundle-tracker'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 
-const __dirname = import.meta.dirname
-const frontendPath = path.resolve(__dirname, '..')
+const frontendPath = path.resolve(import.meta.dirname, '..')
 
 const commonConfig: webpack.Configuration = {
   optimization: { usedExports: true },
@@ -13,7 +12,7 @@ const commonConfig: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.(tsx|ts)?$/,
+        test: /\.(?:tsx|ts)?$/,
         use: {
           loader: 'ts-loader',
           options: {
@@ -27,7 +26,7 @@ const commonConfig: webpack.Configuration = {
         use: [MiniCssExtractPlugin.loader, 'css-loader']
       },
       {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        test: /\.(?:png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource'
       }
     ]

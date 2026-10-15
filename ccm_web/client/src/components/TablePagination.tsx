@@ -1,7 +1,7 @@
 import { IconButton, useTheme } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { KeyboardArrowRight, KeyboardArrowLeft, FirstPage, LastPage } from '@mui/icons-material'
-import React from 'react'
+import React, { type JSX } from 'react'
 
 const classes = {
   root: 'TablePagination-root'
@@ -14,25 +14,25 @@ const Root = styled('div')(({ theme }) => ({
   }
 }))
 
-type PageChangeCallback = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, page: number) => void
+type PageChangeCallback = (event: React.MouseEvent<HTMLButtonElement>, page: number) => void
 
 function TablePaginationActions (props: { count: number, page: number, rowsPerPage: number, onPageChange: PageChangeCallback}): JSX.Element {
   const theme = useTheme()
   const { count, page, rowsPerPage, onPageChange } = props
 
-  const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+  const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
     onPageChange(event, 0)
   }
 
-  const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+  const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
     onPageChange(event, page - 1)
   }
 
-  const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+  const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
     onPageChange(event, props.page + 1)
   }
 
-  const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
+  const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>): void => {
     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1))
   }
 

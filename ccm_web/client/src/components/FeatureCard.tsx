@@ -1,4 +1,4 @@
-import React from 'react'
+import type { JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Link as RouterLink } from 'react-router-dom'
 import { Card, CardActionArea, CardContent, Grid, Typography } from '@mui/material'
@@ -51,7 +51,7 @@ function FeatureCard (props: FeatureUIProps): JSX.Element {
     <StyledRouterLink className={classes.cardLink} to={props.route} tabIndex={-1}>
       <Card variant='outlined'>
         <CardActionArea>
-          <CardContent className={`${classes.cardContent}`}>
+          <CardContent className={classes.cardContent}>
             <Grid container>
               <Grid item xs={12}>
                 <div className={classes.centered}>
