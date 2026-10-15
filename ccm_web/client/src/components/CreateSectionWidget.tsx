@@ -1,7 +1,7 @@
 import { CODE_NUMPAD_ENTER, CODE_RETURN } from 'keycode-js'
 import { styled } from '@mui/material/styles'
 import { useSnackbar } from 'notistack'
-import React, { ChangeEvent, useState } from 'react'
+import { ChangeEvent, useState, type JSX } from 'react'
 import { Button, Grid, TextField } from '@mui/material'
 
 import APIErrorMessage from './APIErrorMessage.js'
@@ -111,7 +111,7 @@ function CreateSectionWidget (props: CreateSectionWidgetProps): JSX.Element {
     (<Root>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={9}>
-          <TextField className={classes.input} size='small' label='input the name of the new section' variant='outlined' id="outlined-basic" onChange={newSectionNameChanged} value={newSectionName} onKeyDown={(e) => keyDown(e.code)}/>
+          <TextField className={classes.input} size='small' label='input the name of the new section' variant='outlined' id="outlined-basic" onChange={newSectionNameChanged} value={newSectionName} onKeyDown={(e) => { keyDown(e.code) }}/>
         </Grid>
         <Grid item xs={12} sm>
           <Button className={classes.button} variant="contained" color="primary" onClick={createSection} value={newSectionName} disabled={isCreateDisabled()}>

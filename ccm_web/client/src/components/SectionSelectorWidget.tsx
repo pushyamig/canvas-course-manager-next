@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { useSnackbar } from 'notistack'
 import {
@@ -267,13 +267,11 @@ function SectionSelectorWidget(props: ISectionSelectorWidgetProps): JSX.Element 
     const alreadySelected = props.selectedSections.filter(s => { return s.id === sectionId })
     if (alreadySelected.length > 0) {
       newSelections.splice(newSelections.indexOf(alreadySelected[0]), 1)
-    } else {
-      if (props.multiSelect) {
+    } else if (props.multiSelect) {
         newSelections.push(internalSections.filter(s => { return s.id === sectionId })[0])
       } else {
         newSelections = [internalSections.filter(s => { return s.id === sectionId })[0]]
       }
-    }
 
     props.selectionUpdated(newSelections)
   }

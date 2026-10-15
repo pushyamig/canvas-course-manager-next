@@ -1,4 +1,4 @@
-import React from 'react'
+import type { JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Link as RouterLink } from 'react-router-dom'
 import { Breadcrumbs as MuiBreadcrumbs, Link, Typography } from '@mui/material'
@@ -59,7 +59,7 @@ function Breadcrumbs (props: BreadcrumbsProps): JSX.Element {
               const matches = features.filter(f => f.route.substring(1) === value)
               if (matches.length === 0) return undefined
               const feature = matches[0]
-              const titleTypographyProps: TitleTypographyProps = last ? { to: to } : {}
+              const titleTypographyProps: TitleTypographyProps = last ? { to } : {}
               return (
                 <Typography className={classes.breadcrumbs} color='textPrimary' key={to} {...titleTypographyProps}>
                   {feature.data.title}

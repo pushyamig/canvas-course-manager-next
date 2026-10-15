@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Backdrop, Button, CircularProgress, Grid, Typography } from '@mui/material'
 
@@ -129,7 +129,7 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
   const [doAddSections, isAddSectionsLoading, addSectionsError] = usePromise(
     async () => await addCourseSections(props.globals.course.id, sectionNames),
     (newSections: CanvasCourseSection[]) => {
-      const originalSectionNames: string[] = (existingSectionNames != null) ? existingSectionNames : []
+      const originalSectionNames: string[] = existingSectionNames ?? []
       setPageState({ state: BulkSectionCreatePageState.CreateSectionsSuccess, schemaInvalidations: [], rowInvalidations: [] })
       setExistingSectionNames([...new Set([...originalSectionNames, ...newSections.map(newSection => { return newSection.name.toUpperCase() })])])
     }
@@ -171,9 +171,9 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
     validate = (sectionNames: string[]): SectionsRowInvalidation[] => {
       const sortedSectionNames = sectionNames.map(n => { return n.toUpperCase() }).sort((a, b) => { return a.localeCompare(b) })
       const duplicates: string[] = []
-      for (let i = 0; i < sortedSectionNames.length; ++i) {
-        if ((existingSectionNames?.includes(sortedSectionNames[i])) ?? false) {
-          duplicates.push(sortedSectionNames[i])
+      for (const sectionName of sortedSectionNames) {
+        if ((existingSectionNames?.includes(sectionName)) ?? false) {
+          duplicates.push(sectionName)
         }
       }
 
@@ -181,7 +181,7 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
       sectionNames.forEach((sectionName, i) => {
         if (duplicates.includes(sectionName.toUpperCase())) {
           invalidations.push({
-            message: 'Section name already used in this course: "' + sectionName + '"',
+            message: `Section name already used in this course: "${sectionName}"`,
             rowNumber: getRowNumber(i),
             type: InvalidationType.Error
           })
@@ -208,7 +208,7 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
   }
 
   const handleSchemaError = (schemaInvalidations: SchemaInvalidation[]): void => {
-    setPageState({ state: BulkSectionCreatePageState.InvalidUpload, schemaInvalidations: schemaInvalidations, rowInvalidations: [] })
+    setPageState({ state: BulkSectionCreatePageState.InvalidUpload, schemaInvalidations, rowInvalidations: [] })
   }
 
   const handleRowLevelInvalidationError = (invalidations: SectionsRowInvalidation[]): void => {
@@ -223,10 +223,10 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
   const handleParseComplete = (headers: string[] | undefined, data: CSVRecord[]): void => {
     const csvValidator = new CSVSchemaValidator<SectionNameRecord>(['SECTION_NAME'], isSectionNameRecord, 60)
     const validationResult = csvValidator.validate(headers, data)
-    if (!validationResult.valid) return handleSchemaError(validationResult.schemaInvalidations)
+    if (!validationResult.valid) { handleSchemaError(validationResult.schemaInvalidations); return }
 
     const sectionNames = validationResult.validData.map(r => r.SECTION_NAME)
-    return handleParseSuccess(sectionNames)
+    handleParseSuccess(sectionNames)
   }
 
   const parseFile = (file: File): void => {
@@ -234,7 +234,7 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
     parser.parseCSV(
       file,
       handleParseComplete,
-      (message) => handleSchemaError([{ message, type: InvalidationType.Error }])
+      (message) => { handleSchemaError([{ message, type: InvalidationType.Error }]) }
     )
   }
 
@@ -269,7 +269,7 @@ function BulkSectionCreate (props: CCMComponentProps): JSX.Element {
 Section 001`
     const fileDownloadHeaderProps: ExampleFileDownloadHeaderProps = {
       body: <Typography>Your file should include one section name per line. The maximum number of records allowed in the file is 60.</Typography>,
-      fileData: fileData,
+      fileData,
       fileName: 'sections.csv'
     }
     return <ExampleFileDownloadHeader {...fileDownloadHeaderProps} />
@@ -288,7 +288,7 @@ Section 001`
       <Root className={classes.uploadContainer}>
         <Grid container>
           <Grid item xs={12}>
-            <FileUpload onUploadComplete={(file) => setFile(file)} />
+            <FileUpload onUploadComplete={(file) => { setFile(file) }} />
           </Grid>
         </Grid>
         <Backdrop className={classes.backdrop} open={isGetSectionsLoading}>

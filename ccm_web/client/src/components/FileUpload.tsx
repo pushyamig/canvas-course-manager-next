@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef } from 'react'
+import React, { ChangeEvent, useRef, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Button, Card, CardContent, Typography } from '@mui/material'
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material'
@@ -57,7 +57,7 @@ function FileUpload (props: FileUploadProps): JSX.Element {
   const { enqueueSnackbar } = useSnackbar()
   const handleFileSelected = (file: File|undefined): void => {
     if (file === undefined) return
-    if (file.name.toUpperCase().match(/.+.CSV/) == null) {
+    if (/.+.CSV/.exec(file.name.toUpperCase()) === null) {
       enqueueSnackbar('Only .csv files are supported', {
         variant: 'error'
       })
@@ -73,7 +73,7 @@ function FileUpload (props: FileUploadProps): JSX.Element {
     e.preventDefault()
     handleFileSelected(e.dataTransfer.files[0])
   }
-  const onFileInputClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
+  const onFileInputClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     fileInput.current?.click()
     e.stopPropagation()
   }
@@ -88,11 +88,11 @@ function FileUpload (props: FileUploadProps): JSX.Element {
   return (
     <Root className={classes.root}>
       <Card variant='outlined'>
-        <CardContent className={classes.cardContent} onDragOver={dragover} onDrop={dragdrop} onClick={(e) => onFileInputClick(e)}>
+        <CardContent className={classes.cardContent} onDragOver={dragover} onDrop={dragdrop} onClick={(e) => { onFileInputClick(e) }}>
           <div>
             <CloudUploadIcon className={classes.uploadIcon} fontSize='large'/>
             <Typography>
-              Drag and drop or <Button color='primary' component="span" onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => onFileInputClick(e)}>browse your files</Button>
+              Drag and drop or <Button color='primary' component="span" onClick={(e: React.MouseEvent<HTMLDivElement>) => { onFileInputClick(e) }}>browse your files</Button>
             </Typography>
             <input
               accept='.csv'

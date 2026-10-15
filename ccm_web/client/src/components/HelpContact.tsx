@@ -1,4 +1,4 @@
-import React from 'react'
+import type { JSX } from 'react'
 import { Link, Typography } from '@mui/material'
 
 export interface HelpContactProps {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Backdrop, Button, CircularProgress, Grid, Typography, Link } from '@mui/material'
 
@@ -232,7 +232,7 @@ export default function MultipleUserEnrollmentWorkflow (props: MultipleUserEnrol
         color='primary'
         aria-label='Select section'
         disabled={selectedSection === undefined || props.isGetSectionsLoading}
-        onClick={() => setActiveStep(CSVWorkflowStep.Upload)}
+        onClick={() => { setActiveStep(CSVWorkflowStep.Upload) }}
       >
         Select
       </Button>
@@ -297,7 +297,7 @@ export default function MultipleUserEnrollmentWorkflow (props: MultipleUserEnrol
         REQUIRED_HEADERS, isExternalEnrollmentRecord, 200
       )
       const validationResult = schemaValidator.validate(headers, rowData)
-      if (!validationResult.valid) return setSchemaInvalidations(validationResult.schemaInvalidations)
+      if (!validationResult.valid) { setSchemaInvalidations(validationResult.schemaInvalidations); return }
 
       const externalRecords = validationResult.validData
       const errors: EnrollmentInvalidation[] = []
@@ -315,7 +315,7 @@ export default function MultipleUserEnrollmentWorkflow (props: MultipleUserEnrol
       const rolesValidator = new RoleRowsValidator(props.rolesUserCanEnroll)
       errors.push(...rolesValidator.validate(externalRecords.map(r => r[ROLE_HEADER])))
 
-      if (errors.length > 0) return setRowInvalidations(errors)
+      if (errors.length > 0) { setRowInvalidations(errors); return }
 
       const externalEnrollments: RowNumberedAddNewExternalUserEnrollment[] = externalRecords.map((r, i) => ({
         rowNumber: getRowNumber(i),
@@ -335,7 +335,7 @@ export default function MultipleUserEnrollmentWorkflow (props: MultipleUserEnrol
       parser.parseCSV(
         file,
         handleValidation,
-        (message) => setSchemaInvalidations([{ message, type: InvalidationType.Error }])
+        (message) => { setSchemaInvalidations([{ message, type: InvalidationType.Error }]) }
       )
     }
 

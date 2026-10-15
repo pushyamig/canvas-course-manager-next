@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 
 import { styled } from '@mui/material/styles'
 
@@ -250,7 +250,7 @@ function MergeSections(props: CCMComponentProps): JSX.Element {
   }
 
   const mergeButtonText = (sectionsToMerge: SelectableCanvasCourseSection[]): string => {
-    return `Go Merge ${sectionsToMerge.length > 0 ? '(' + String(sectionsToMerge.length) + ')' : ''}`
+    return `Go Merge ${sectionsToMerge.length > 0 ? `(${String(sectionsToMerge.length)})` : ''}`
   }
 
   const getSelectSections = (): JSX.Element => {

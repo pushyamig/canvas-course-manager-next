@@ -19,7 +19,7 @@ function createOutputFileName (oldFileName: string, newfileEnding?: string): str
   }
   const splitName = oldFileName.split('.')
   const filenameIndex = splitName.length >= 2 ? splitName.length - 2 : 0
-  splitName[filenameIndex] = splitName[filenameIndex] + newfileEnding
+  splitName[filenameIndex] += newfileEnding
   return splitName.join('.')
 }
 

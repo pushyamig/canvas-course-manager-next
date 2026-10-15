@@ -43,7 +43,7 @@ export default class FileParserWrapper {
         onComplete(results.meta.fields, results.data)
       }
     ).catch(
-      (r) => onError(`An error occurred while parsing the file: "${String(r)}"`)
+      (r) => { onError(`An error occurred while parsing the file: "${String(r)}"`) }
     )
   }
 

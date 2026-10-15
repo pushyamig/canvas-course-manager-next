@@ -84,13 +84,13 @@ export function ConsentManagerProvider({
       return;
     }
 
-    const enabledCustomManager = alwaysShow !== false || rootDomain !== '';
+    const enabledCustomManager = alwaysShow || rootDomain !== '';
     const consentConfig: UmConsentManagerConfig = {
       onConsentChange: handleConsentChange,
-      mode: mode,
+      mode,
       customManager: {
         enabled: enabledCustomManager,
-        alwaysShow: alwaysShow,
+        alwaysShow,
         rootDomain: enabledCustomManager ? rootDomain : false,
         preferencePanel: {
           beforeCategories: false,
@@ -100,8 +100,8 @@ export function ConsentManagerProvider({
       googleAnalyticsCustom: {
         streamConfig: { cookie_flags: 'SameSite=None; Secure' }
       },
-      privacyUrl: privacyUrl,
-      externalLinkBlank: externalLinkBlank,
+      privacyUrl,
+      externalLinkBlank,
       googleAnalyticsID: googleAnalyticsId,
       cookies: {
         necessary: [],
@@ -130,7 +130,7 @@ export function ConsentManagerProvider({
   }, [handleConsentChange, googleAnalyticsId, umConsentManagerScriptUrl, alwaysShow, rootDomain, mode, privacyUrl, externalLinkBlank]);
 
   const contextValue: AnalyticsConsentContextType = {
-    analyticsConsentGiven: analyticsConsentGiven,
+    analyticsConsentGiven,
     courseIdForEvents: course?.id || null
   };
 
