@@ -4,8 +4,8 @@ References:
 - https://github.com/mightyiam/eslint-config-love (successor of eslint-config-standard-with-typescript)
 */
 
+import stylistic from '@stylistic/eslint-plugin'
 import { defineConfig } from 'eslint/config'
-import love from 'eslint-config-love'
 import react from 'eslint-plugin-react'
 import tseslint from 'typescript-eslint'
 
@@ -17,8 +17,7 @@ export default defineConfig(
       react.configs.flat.recommended,
       // tsconfig uses "jsx": "react-jsx", so React doesn't need to be imported for JSX
       react.configs.flat['jsx-runtime'],
-      tseslint.configs.recommended,
-      love
+      tseslint.configs.recommendedTypeChecked
     ],
     languageOptions: {
       parserOptions: {
@@ -31,23 +30,23 @@ export default defineConfig(
         version: 'detect'
       }
     },
+    plugins: {
+      '@stylistic': stylistic
+    },
     rules: {
       'no-void': ['error', { allowAsStatement: true }],
       '@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: true }],
-      // Style-only rules from eslint-config-love that the codebase doesn't follow
-      '@typescript-eslint/no-magic-numbers': 'off',
-      'arrow-body-style': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
-      '@typescript-eslint/prefer-destructuring': 'off',
-      'no-negated-condition': 'off',
-      // Structural rules from eslint-config-love that are stricter than the old standard-with-typescript
-      complexity: 'off',
-      'max-lines': 'off',
-      '@typescript-eslint/max-params': 'off',
-      'no-plusplus': 'off',
-      '@typescript-eslint/init-declarations': 'off',
-      '@typescript-eslint/class-methods-use-this': 'off',
-      'require-unicode-regexp': 'off'
+      // Style rules matching eslint-config-standard-with-typescript on main
+      '@stylistic/semi': ['error', 'never'],
+      '@stylistic/quotes': ['error', 'single', { avoidEscape: true }],
+      // JSX indentation is ignored, as in standard-with-typescript
+      '@stylistic/indent': ['error', 2, {
+        SwitchCase: 1,
+        ignoredNodes: ['JSXElement', 'JSXElement > *', 'JSXAttribute', 'JSXIdentifier', 'JSXNamespacedName', 'JSXMemberExpression', 'JSXSpreadAttribute', 'JSXExpressionContainer', 'JSXOpeningElement', 'JSXClosingElement', 'JSXFragment', 'JSXOpeningFragment', 'JSXClosingFragment', 'JSXText', 'JSXEmptyExpression', 'JSXSpreadChild']
+      }],
+      '@stylistic/space-infix-ops': 'error',
+      '@stylistic/keyword-spacing': 'error',
+      '@stylistic/object-curly-spacing': ['error', 'always']
     }
   }
 )

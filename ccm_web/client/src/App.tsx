@@ -33,7 +33,7 @@ function App (props: HomeProps): JSX.Element {
   )
 
   useEffect(() => {
-    if (globals?.user.hasCanvasToken) {
+    if (globals.user.hasCanvasToken) {
       void doLoadCourse(globals.course.id)
     }
   }, [globals])
@@ -58,13 +58,10 @@ function App (props: HomeProps): JSX.Element {
       </Layout>
     )
   }
-
-  const pathnames = location !== undefined
-    ? location.pathname.split('/').filter(x => x)
-    : undefined
+  const pathnames = location.pathname.split('/').filter(x => x !== '')
 
   return (
-    <Layout {...{ features, pathnames }} devMode={globals?.environment === 'development'} isAdmin={globals?.user.isStaff?? false} >
+    <Layout {...{ features, pathnames }} devMode={globals.environment === 'development'} isAdmin={globals.user.isStaff} >
       <Routes>
         <Route path='/' element={
           <Home globals={globals} course={course} setCourse={setCourse} getCourseError={getCourseError} />
