@@ -1,4 +1,4 @@
-import React from 'react'
+import type { JSX } from 'react'
 import { Typography } from '@mui/material'
 
 import HelpContact, { HelpContactProps } from '../components/HelpContact.js'

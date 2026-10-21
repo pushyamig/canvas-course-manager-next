@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Button, Backdrop, CircularProgress, Grid, Link, Typography } from '@mui/material'
 
@@ -93,7 +93,7 @@ interface FormatThirdPartyGradebookProps extends CCMComponentProps {}
 
 export default function FormatThirdPartyGradebook (props: FormatThirdPartyGradebookProps): JSX.Element {
   const csvParser = new FileParserWrapper(
-    Object.assign({ ...FileParserWrapper.defaultParseConfigOptions }, { transformHeader: undefined })
+    {...FileParserWrapper.defaultParseConfigOptions, transformHeader: undefined}
   )
 
   const [activeStep, setActiveStep] = useState<CSVWorkflowStep>(CSVWorkflowStep.Select)
@@ -110,12 +110,12 @@ export default function FormatThirdPartyGradebook (props: FormatThirdPartyGradeb
 
   const [doGetSections, isGetSectionsLoading, getSectionsError, clearGetSectionsError] = usePromise(
     async () => await api.getCourseSections(props.globals.course.id),
-    (sections: CanvasCourseSection[]) => setSections(injectCourseName(sections, props.course.name))
+    (sections: CanvasCourseSection[]) => { setSections(injectCourseName(sections, props.course.name)) }
   )
 
   const [doGetStudents, isGetStudentsLoading, getStudentsError, clearGetStudentsError] = usePromise(
     async (sectionIds: number[]) => await api.getStudentsEnrolledInSections(sectionIds),
-    (studentLoginIds: string[]) => setStudentLoginIds(studentLoginIds)
+    (studentLoginIds: string[]) => { setStudentLoginIds(studentLoginIds) }
   )
 
   useEffect(() => {
@@ -137,15 +137,15 @@ export default function FormatThirdPartyGradebook (props: FormatThirdPartyGradeb
   const handleSchemaValidation = (headers: string[] | undefined, rowData: CSVRecord[]): void => {
     const schemaValidator = new CSVSchemaValidator<GradebookUploadRecord>([REQUIRED_LOGIN_ID_HEADER], isGradebookUploadRecord)
     const validationResult = schemaValidator.validate(headers, rowData)
-    if (!validationResult.valid) return setSchemaInvalidations(validationResult.schemaInvalidations)
-    return setRecords(validationResult.validData)
+    if (!validationResult.valid) { setSchemaInvalidations(validationResult.schemaInvalidations); return }
+    setRecords(validationResult.validData)
   }
 
   const parseFile = (file: File): void => {
     csvParser.parseCSV(
       file,
       handleSchemaValidation,
-      message => setSchemaInvalidations([{ message, type: InvalidationType.Error }])
+      message => { setSchemaInvalidations([{ message, type: InvalidationType.Error }]) }
     )
   }
 
@@ -216,7 +216,7 @@ export default function FormatThirdPartyGradebook (props: FormatThirdPartyGradeb
         <WarningAlert
           messages={warnings.map((w, i) => <Typography key={i}>{w.message}</Typography>)}
           cancel={handleResetUpload}
-          cont={() => setActiveStep(CSVWorkflowStep.Review)}
+          cont={() => { setActiveStep(CSVWorkflowStep.Review) }}
         />
       )
     }
@@ -397,7 +397,7 @@ export default function FormatThirdPartyGradebook (props: FormatThirdPartyGradeb
             <Grid item xs={12} sm={12} md={3} sx={{ order: { xs: 1, sm: 1, md: 2, lg: 2 } }}>
               <ConfirmDialog
                 message='Your file is valid! If this looks correct, click "Submit" to proceed with downloading.'
-                submit={() => setActiveStep(CSVWorkflowStep.Confirmation)}
+                submit={() => { setActiveStep(CSVWorkflowStep.Confirmation) }}
                 cancel={() => {
                   handleResetUpload()
                   setActiveStep(CSVWorkflowStep.Upload)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, type JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import {
   Backdrop,
@@ -120,7 +120,7 @@ export default function MultipleSectionEnrollmentWorkflow (props: MultipleSectio
         enrollments.map(e => ({ loginId: e.loginId, role: e.role, sectionId: e.sectionId }))
       )
     },
-    () => setWorkflowState(CSVWorkflowState.Confirmation)
+    () => { setWorkflowState(CSVWorkflowState.Confirmation) }
   )
 
   const getSectionsErrorAlert = (
@@ -144,7 +144,7 @@ export default function MultipleSectionEnrollmentWorkflow (props: MultipleSectio
       REQUIRED_ENROLLMENT_WITH_SECTION_ID_HEADERS, isEnrollmentWithSectionIdRecord, MAX_ENROLLMENT_RECORDS
     )
     const validationResult = schemaValidator.validate(headers, rowData)
-    if (!validationResult.valid) return setSchemaInvalidations(validationResult.schemaInvalidations)
+    if (!validationResult.valid) { setSchemaInvalidations(validationResult.schemaInvalidations); return }
 
     const enrollmentRecords = validationResult.validData
     const errors: EnrollmentInvalidation[] = []
@@ -159,7 +159,7 @@ export default function MultipleSectionEnrollmentWorkflow (props: MultipleSectio
     const sectionIdValidator = new SectionIdRowsValidator(sectionIds)
     errors.push(...sectionIdValidator.validate(specifiedSectionIDs))
 
-    if (errors.length > 0) return setRowInvalidations(errors)
+    if (errors.length > 0) { setRowInvalidations(errors); return }
 
     const enrollmentsWithSectionIds: RowNumberedAddEnrollmentWithSectionId[] = enrollmentRecords.map((r, i) => {
       return {
@@ -178,7 +178,7 @@ export default function MultipleSectionEnrollmentWorkflow (props: MultipleSectio
     parser.parseCSV(
       file,
       handleValidation,
-      (message) => setSchemaInvalidations([{ message, type: InvalidationType.Error }])
+      (message) => { setSchemaInvalidations([{ message, type: InvalidationType.Error }]) }
     )
   }
 
@@ -307,7 +307,7 @@ export default function MultipleSectionEnrollmentWorkflow (props: MultipleSectio
             </Grid>
             <Grid item xs={12} sm={3} sx={{ order: { xs: 1, sm: 2 } }}>
               <ConfirmDialog
-                submit={async () => await doAddEnrollments(enrollmentData)}
+                submit={async () => { await doAddEnrollments(enrollmentData) }}
                 cancel={resetUpload}
                 disabled={isAddEnrollmentsLoading}
               />

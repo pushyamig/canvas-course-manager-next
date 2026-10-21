@@ -1,6 +1,6 @@
 import { useSnackbar } from 'notistack'
 import { styled } from '@mui/material/styles'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, type JSX } from 'react'
 import {
   Backdrop,
   Button,
@@ -134,7 +134,7 @@ function CourseSectionList (props: CourseSectionListProps): JSX.Element {
     </Backdrop>)
   }
 
-  const unmergeSection = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, section: CanvasCourseSection): React.MouseEventHandler<HTMLButtonElement> | undefined => {
+  const unmergeSection = (e: React.MouseEvent<HTMLButtonElement>, section: CanvasCourseSection): React.MouseEventHandler<HTMLButtonElement> | undefined => {
     e.stopPropagation()
     setSectionsToUnmerge([section])
     return undefined

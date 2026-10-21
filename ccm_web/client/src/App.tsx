@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, type JSX } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 
 import { getCourse } from './api.js'
@@ -12,7 +12,6 @@ import { CanvasCourseBase } from './models/canvas.js'
 import allFeatures from './models/FeatureUIData.js'
 import Home from './pages/Home.js'
 import NotFound from './pages/NotFound.js'
-import redirect from './utils/redirect.js'
 import { Globals } from './models/models.js'
 
 interface HomeProps {
@@ -30,22 +29,17 @@ function App (props: HomeProps): JSX.Element {
     async (courseId: number): Promise<CanvasCourseBase> => {
       return await getCourse(courseId)
     },
-    (value: CanvasCourseBase|undefined) => setCourse(value)
+    (value: CanvasCourseBase|undefined) => { setCourse(value) }
   )
 
   useEffect(() => {
-    if (globals?.user.hasCanvasToken === true) {
+    if (globals.user.hasCanvasToken) {
       void doLoadCourse(globals.course.id)
     }
   }, [globals])
 
   const loading = <div className='App'><p>Loading...</p></div>
 
-  if (globals === undefined) {
-    redirect('/access-denied')
-    return (loading)
-  }
-  
   if (!globals.user.hasCanvasToken) {
     return (
       <Layout>
@@ -64,13 +58,10 @@ function App (props: HomeProps): JSX.Element {
       </Layout>
     )
   }
-
-  const pathnames = location !== undefined
-    ? location.pathname.split('/').filter(x => x)
-    : undefined
+  const pathnames = location.pathname.split('/').filter(x => x !== '')
 
   return (
-    <Layout {...{ features, pathnames }} devMode={globals?.environment === 'development'} isAdmin={globals?.user.isStaff?? false} >
+    <Layout {...{ features, pathnames }} devMode={globals.environment === 'development'} isAdmin={globals.user.isStaff} >
       <Routes>
         <Route path='/' element={
           <Home globals={globals} course={course} setCourse={setCourse} getCourseError={getCourseError} />

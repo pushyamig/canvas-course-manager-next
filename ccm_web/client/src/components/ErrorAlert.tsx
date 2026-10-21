@@ -1,4 +1,4 @@
-import React from 'react'
+import type { JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Button, Typography } from '@mui/material'
 import { Error as ErrorIcon } from '@mui/icons-material'

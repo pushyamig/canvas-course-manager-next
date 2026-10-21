@@ -121,8 +121,8 @@ export default class ThirdPartyGradebookProcessor {
     if (studentsWithoutRecords.length > 0) {
       invalidations.push({
         message: (
-          'One or more students from the section(s) you selected were not present in the provided file: ' +
-            studentsWithoutRecords.join(', ')
+          `One or more students from the section(s) you selected were not present in the provided file: ${
+            studentsWithoutRecords.join(', ')}`
         ),
         type: InvalidationType.Warning
       })

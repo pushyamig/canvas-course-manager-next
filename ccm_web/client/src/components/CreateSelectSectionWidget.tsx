@@ -1,4 +1,4 @@
-import React from 'react'
+import type { JSX } from 'react'
 import { styled } from '@mui/material/styles'
 import { Tooltip, Typography } from '@mui/material'
 import { HelpOutline } from '@mui/icons-material'
@@ -100,7 +100,7 @@ export default function CreateSelectSectionWidget (props: CreateSelectSectionWid
           multiSelect={false}
           sections={props.sections}
           selectedSections={props.selectedSection !== undefined ? [props.selectedSection] : []}
-          selectionUpdated={(sections) => props.setSelectedSection(sections[0])}
+          selectionUpdated={(sections) => { props.setSelectedSection(sections[0]) }}
           canUnmerge={false}
         />
       </div>

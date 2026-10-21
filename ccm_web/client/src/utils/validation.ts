@@ -55,7 +55,7 @@ export interface ValidationResult<T = string> {
   messages: readonly string[]
 }
 
-export function validateString (value: string | undefined, schema: StringSchema): ValidationResult<string> {
+export function validateString (value: string | undefined, schema: StringSchema): ValidationResult {
   let transformedValue: string | undefined
   let isValid = true
   let messages: string[] = []
