@@ -4,7 +4,7 @@ import CustomTable, { TableColumn } from './CustomTable.js'
 import { ErrorDescription } from '../utils/handleErrors.js'
 
 interface NumberedErrorDescription extends ErrorDescription {
-  rowNumber: number;
+  rowNumber: number
 }
 
 const mainColumns: Array<TableColumn<NumberedErrorDescription>> = [
