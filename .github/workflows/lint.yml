@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    # Runs on PRs to the tl-its-umich-edu repo, or when started manually on any branch
+    if: github.repository_owner == 'pushyamig' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+
+      - name: Install dependencies
+        working-directory: ccm_web
+        run: npm ci
+
+      - name: Type-check
+        working-directory: ccm_web
+        run: npx tsc --noEmit -p .
+
+      - name: Lint
+        working-directory: ccm_web
+        run: npx eslint client/src webpack

@@ -1,4 +1,3 @@
-import React from 'react'
 import { styled } from '@mui/material/styles'
 import { Step, Stepper as MUIStepper, StepLabel } from '@mui/material'
 
